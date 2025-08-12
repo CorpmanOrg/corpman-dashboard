@@ -1,27 +1,22 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { montserrat } from "./fonts"
-import { ThemeProvider } from "@/components/theme-provider"
-import "./globals.css"
+// app/layout.tsx
+import React from "react";
+import type { Metadata } from "next";
+import { montserrat } from "./fonts";
+import Providers from "./providers";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
   description: "Modern admin dashboard with dark mode support",
-    generator: 'v0.dev'
-}
+  generator: "v0.dev",
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={montserrat.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
-  )
+  );
 }
