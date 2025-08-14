@@ -3,14 +3,14 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { Formik, Form } from "formik";
-import { LoginInitialValues } from "../assets/data";
+import { LoginInitialValues } from "../../../components/assets/data";
 import { LoginSchema } from "@/utils/Yup/schema";
 import { loginFn } from "@/utils/ApiFactory/auth";
 import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
-import { StorageUtil } from "@/utils/StorageUtil"
+import { StorageUtil } from "@/utils/StorageUtil";
 
 interface BackProps {
   flipBack: (val: boolean) => void;
@@ -24,7 +24,7 @@ const Signin = ({ flipBack }: BackProps) => {
     mutationFn: loginFn,
     onSuccess: (data) => {
       console.log("From Login Success: ", data);
-      StorageUtil.setSessionItem("logData", data)
+      StorageUtil.setSessionItem("logData", data);
       refetchUser();
       router.push("/");
     },

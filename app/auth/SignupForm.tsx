@@ -2,20 +2,20 @@
 
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CardContent } from "./ui/card";
+import { CardContent } from "../../components/ui/card";
 import { Formik, Form } from "formik";
-import { SignUpInitialValues } from "./assets/data";
+import { SignUpInitialValues } from "../../components/assets/data";
 import { SignupSchema } from "@/utils/Yup/schema";
 import Image from "next/image";
 
-import SignupProgress from "./SignupProgress";
+import SignupProgress from "../../components/SignupProgress";
 import Step1 from "./signup/Step1";
 import Step2 from "./signup/Step2";
 import Step3 from "./signup/Step3";
 import Step4 from "./signup/Step4";
 import Signin from "./signin/page";
 import EmailVerification from "./signup/EmailVerification";
-import CorpManLogo from "../components/assets/img/Corpman-logo.png";
+import CorpManLogo from "../../components/assets/img/Corpman-logo.png";
 
 const SignupForm = () => {
   const router = useRouter();
