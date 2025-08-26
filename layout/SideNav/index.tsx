@@ -1,6 +1,8 @@
 "use client";
 
 import { ReactNode, FC, useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { ChevronDown, Menu } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -14,6 +16,7 @@ type Category = "people" | "financials" | "records";
 interface SidebarCategoryProps {
   icon: ReactNode;
   label: string;
+  href: string;
   isCollapsed: boolean;
   isExpanded: boolean;
   onToggle: () => void;
@@ -22,6 +25,7 @@ interface SidebarCategoryProps {
 
 interface SidebarSubItemProps {
   label: string;
+  chref: string;
   isCollapsed: boolean;
   isActive: boolean;
   onClick: () => void;
@@ -31,17 +35,19 @@ interface SidebarSubItemProps {
 interface SidebarItemProps {
   icon: ReactNode;
   label: string;
+  href: string;
   isCollapsed: boolean;
   isActive?: boolean;
   onClick: () => void;
   children?: ReactNode;
 }
 
-function SidebarCategory({ icon, label, isCollapsed, isExpanded, onToggle, children }: SidebarCategoryProps) {
+function SidebarCategory({ icon, label, href, isCollapsed, isExpanded, onToggle, children }: SidebarCategoryProps) {
   const categoryHeader = (
     <div
       className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors text-gray-700 dark:text-gray-300 hover: bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400`}
       onClick={onToggle}
+      // href={href}
     >
       <div className="flex items-center">
         <div className="flex items-center justify-center p-2 w-6 h-6">{icon}</div>
@@ -71,36 +77,38 @@ function SidebarCategory({ icon, label, isCollapsed, isExpanded, onToggle, child
   );
 }
 
-function SidebarSubItem({ label, isCollapsed, isActive, onClick }: SidebarSubItemProps) {
+function SidebarSubItem({ label, chref, isCollapsed, isActive, onClick }: SidebarSubItemProps) {
   if (isCollapsed) return null;
 
   return (
-    <div
+    <Link
       className={`flex items-center p-2 pl-8 rounded-md cursor-pointer transition-colors ${
         isActive
           ? "bg-gradient-to-r from-[#19d21f] to-[#5aed5f] text-white dark:from-green-600 dark:to-green-500"
           : "text-gray-400 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400"
       }`}
       onClick={onClick}
+      href={chref}
     >
       <span className="text-sm">{label}</span>
-    </div>
+    </Link>
   );
 }
 
-function SidebarItem({ icon, label, isCollapsed, isActive = false, onClick = () => {} }: SidebarItemProps) {
+function SidebarItem({ icon, label, href, isCollapsed, isActive = false, onClick = () => {} }: SidebarItemProps) {
   const content = (
-    <div
+    <Link
       className={`flex items-center p-2 rounded-md transition-colors cursor-pointer ${
         isActive
           ? "bg-gradient-to-r from-[#19d21f] to-[#5aed5f] text-white dark:from-green-600 dark:to-green-500"
           : "text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400"
       }`}
       onClick={onClick}
+      href={href}
     >
       <div className="flex items-center justify-center p-2 w-6 h-6">{icon}</div>
       {!isCollapsed && <span className="ml-3">{label}</span>}
-    </div>
+    </Link>
   );
 
   if (isCollapsed) {
@@ -124,6 +132,7 @@ export function SideNav() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState("dashboard");
   const [expandedCategories, setExpandedCategories] = useState(["people"]);
+  const pathname = usePathname();
   const { user, userRoles, userLoggedData } = useAuth();
 
   const toggleCategory = (category: Category) => {
@@ -134,11 +143,10 @@ export function SideNav() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-screen overflow-hidden">
         <aside
-          className={`h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+          className={`bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ${
             isSidebarCollapsed ? "w-20" : "w-64"
-          }`}
+          } flex flex-col h-screen`}
         >
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-800">
             <h1
@@ -159,14 +167,15 @@ export function SideNav() {
           </div>
 
           <TooltipProvider>
-            <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-4rem)]">
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
               {SidebarMenuInit.map((sideMenu) => {
-                if (sideMenu.type === "item") {
+                if (sideMenu.type === "item" && typeof sideMenu.href === "string") {
                   return (
                     <SidebarItem
                       key={sideMenu.key}
                       icon={sideMenu.icon}
                       label={sideMenu.label}
+                      href={sideMenu.href}
                       isCollapsed={isSidebarCollapsed}
                       isActive={activeItem === sideMenu.key}
                       onClick={() => {
@@ -179,12 +188,13 @@ export function SideNav() {
                   );
                 }
 
-                if (sideMenu.type === "category") {
+                if (sideMenu.type === "category" && typeof sideMenu.href === "string") {
                   return (
                     <SidebarCategory
                       key={sideMenu.key}
                       icon={sideMenu.icon}
                       label={sideMenu.label}
+                      href={sideMenu.href}
                       isCollapsed={isSidebarCollapsed}
                       isExpanded={expandedCategories.includes(sideMenu.key)}
                       onToggle={() => toggleCategory(sideMenu.key as Category)}
@@ -193,6 +203,7 @@ export function SideNav() {
                         <SidebarSubItem
                           key={child.key}
                           label={child.label}
+                          chref={child.chref}
                           isCollapsed={isSidebarCollapsed}
                           isActive={activeItem === child.key}
                           onClick={() => setActiveItem(child.key)}
@@ -207,7 +218,6 @@ export function SideNav() {
             </nav>
           </TooltipProvider>
         </aside>
-      </div>
     </TooltipProvider>
   );
 }

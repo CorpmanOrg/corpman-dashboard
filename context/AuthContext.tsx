@@ -39,7 +39,11 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
   refetchUser: async () => {},
-  userRoles: null
+  userRoles: null,
+  isSuperAdmin: "superAdmin",
+  isAdmin: "admin",
+  isMemberAdmin: "memberAdmin",
+  isMember: "member",
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -65,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const data = await res.json();
-      console.log("data from user-auth-route.ts: ", data);
+      // console.log("data from user-auth-route.ts: ", data);
       const userData = data?.user ? JSON.parse(atob(data.user?.split(".")[1])) : null;
       let storedData = StorageUtil.getSessionItem<LogData>("logData");
 
@@ -88,7 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // console.log("From Auth-GetUser: ", { storedData, roleAccess, userData });
     } catch (error) {
-      console.log("Error in getUser(): ", error);
+      // console.log("Error in getUser(): ", error);
       setUser(null);
       setUserLoggedData(null);
     } finally {

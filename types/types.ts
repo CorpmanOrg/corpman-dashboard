@@ -25,13 +25,99 @@ export interface InputFormFieldProps extends InputHTMLAttributes<HTMLInputElemen
 
 export type SubChildren = {
   label: string;
+  chref: string;
   key: string;
 };
 
 export interface SideMenuModules {
   type: "item" | "category";
   label: string;
+  href?: string;
   icon: ReactNode;
   key: string;
   children?: SubChildren[];
 }
+
+export type Member = {
+  id: string;
+  _id: string;
+  email: string;
+  surname: string;
+  name?: string;
+  uniqueId?: string;
+  contact?: string;
+  status?: string;
+  address?: string;
+  joinedAt?: string;
+  image?: string;
+  [key: string]: any;
+};
+
+export interface Column<T> {
+  id: keyof T | "ActionButton"; // allow action buttons too
+  label: string;
+  minWidth?: number;
+  align?: "right" | "left" | "center";
+  format?: (value: any, row: T, rowIndex: number) => React.ReactNode;
+}
+
+export type MemberParams = {
+  page?: number;
+  limit?: number;
+  orgId: string;
+  status?: string;
+};
+
+export type MembersApiResponse = {
+  total: number;
+  page: number;
+  totalPages: number;
+  members: Member[];
+};
+
+export type TError = {
+  message: string;
+  error: string;
+};
+
+export type TData = MembersApiResponse;
+
+export type MembersQueryKey = ["fetch-members-by-admin", string | undefined, number, number, string | undefined];
+
+export type ToastbarProps = {
+  open: boolean;
+  message: string;
+  severity?: "success" | "error" | "warning" | "info"; // Optional with limited values
+  onClose: () => void;
+};
+
+export type ToastSeverity = "success" | "error" | "warning" | "info";
+
+export interface ToastState {
+  open: boolean;
+  severity: ToastSeverity;
+  message: string;
+}
+
+export type TableAction = "view" | "edit" | "delete" | "custom";
+
+export interface TableActionOption {
+  key: TableAction;
+  label: string;
+  icon?: React.ReactNode;
+}
+
+export type MemberStatusUpdate = {
+  memberId: string;
+  status: "active" | "rejected";
+};
+
+export type ApproveRejectPayload = {
+  updates: MemberStatusUpdate[];
+};
+
+export type ApproveRejectResponse = {
+  success: boolean;
+  message: string;
+  updatedMembers?: Member[];
+};

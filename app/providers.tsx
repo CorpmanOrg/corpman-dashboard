@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
+import { ModalProvider } from "@/context/ModalContext"; // <-- Import your ModalProvider
 
 // This ensures the QueryClient is created in the client-side
 export default function Providers({ children }: { children: ReactNode }) {
@@ -19,10 +20,12 @@ export default function Providers({ children }: { children: ReactNode }) {
 
   return (
     <AuthProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ThemeProvider defaultTheme="system">
         <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster />
+          <ModalProvider>
+            {children}
+            <Toaster />
+          </ModalProvider>
         </QueryClientProvider>
       </ThemeProvider>
     </AuthProvider>

@@ -11,29 +11,14 @@ import { PieCharts } from "@/components//Charts/PieCharts";
 import { Reminders } from "@/components//Reminders/Reminders";
 import { AdvertCarousel } from "@/components//Carousel/AdvertCarousel";
 
-export function Dashboard() {
+export function Dashboards() {
   const { user } = useAuth();
 
   return (
     <TooltipProvider>
       <div className="flex h-screen overflow-hidden">
-        {/* Sidebar */}
-        <SideNav />
-
-        {/* Main content */}
         <main className="flex-1 flex flex-col overflow-hidden bg-[#f8faf8] dark:bg-gray-950">
-          <Header />
-
           <div className="flex-1 overflow-y-auto">
-            <div className="p-6 bg-gradient-to-r from-[#e7f7e7] to-[#f0f9f0] dark:from-green-900/20 dark:to-green-800/20 border-b border-green-100 dark:border-green-900/30">
-              <h2 className="text-lg font-medium text-[#0e4430] dark:text-green-400">{`Welcome back, ${
-                user?.name || "user"
-              }`}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Here's what's happening with your cooperative today.
-              </p>
-            </div>
-
             <MainStatisticsCard />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">

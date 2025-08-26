@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode, FC, useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { TooltipProvider, } from "@/components/ui/tooltip";
 import { Header } from "./Header/Header";
