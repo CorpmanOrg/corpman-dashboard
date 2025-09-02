@@ -21,8 +21,6 @@ const Step1 = ({ onNext, formik }: Step1Props) => {
 
   const isStep1Ready = () => formik.values.email.trim() !== "" && !formik.errors.email;
 
-  console.log("Check: ", { isValid: formik.isValid, isDirty: formik.dirty, formik });
-
   return (
     <div className="from-step space-y-4">
       <div className="space-y-1">

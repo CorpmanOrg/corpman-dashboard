@@ -12,7 +12,6 @@ export async function GET() {
 
   try {
     const decoded = token ? JSON.parse(atob(token?.split(".")[1])) : null;
-    console.log("From User-Auth-Route:", decoded);
     return NextResponse.json({ user: token, organization: decoded }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -9,9 +9,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { LineChart } from "../dashboard-charts";
+import { LineChart as LineChartComponent } from "../dashboard-charts";
 
-export function LineCharts() {
+export interface LineChartsProps {
+  data: { date: string; value: number }[];
+}
+
+export function LineCharts({ data }: LineChartsProps) {
+  // Map 'date' to 'name' for recharts compatibility
+  const chartData = data.map((d) => ({ name: d.date, value: d.value }));
+
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow border-t-4 border-t-[#19d21f] dark:shadow-green-900/10 dark:bg-gray-900 dark:border-t-green-600">
       <CardHeader className="flex flex-row items-center justify-between pb-2 bg-[#f9fdf9] dark:bg-gray-900/50">
@@ -31,7 +38,7 @@ export function LineCharts() {
         </DropdownMenu>
       </CardHeader>
       <CardContent>
-        <LineChart />
+        <LineChartComponent data={chartData} />
       </CardContent>
     </Card>
   );

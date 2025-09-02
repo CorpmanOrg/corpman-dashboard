@@ -10,6 +10,7 @@ import { LineCharts } from "@/components//Charts/LineCharts";
 import { PieCharts } from "@/components//Charts/PieCharts";
 import { Reminders } from "@/components//Reminders/Reminders";
 import { AdvertCarousel } from "@/components//Carousel/AdvertCarousel";
+import { dummyLineData, dummyPieData } from "@/components/assets/data"; // Create or import your mock data
 
 export function Dashboards() {
   const { user } = useAuth();
@@ -22,8 +23,8 @@ export function Dashboards() {
             <MainStatisticsCard />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-              <LineCharts />
-              <PieCharts />
+              <LineCharts data={dummyLineData} />
+              <PieCharts data={dummyPieData} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">

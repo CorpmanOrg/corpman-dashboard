@@ -11,7 +11,13 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { PieChartComponent } from "../dashboard-charts";
 
-export function PieCharts() {
+export interface PieChartsProps {
+  data: { label: string; value: number }[];
+}
+
+export function PieCharts({ data }: PieChartsProps) {
+  const chartData = data.map((d) => ({ name: d.label, value: d.value }));
+
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow border-t-4 border-t-[#19d21f] dark:shadow-green-900/10 dark:bg-gray-900 dark:border-t-green-600">
       <CardHeader className="flex flex-row items-center justify-between pb-2 bg-[#f9fdf9] dark:bg-gray-900/50">
@@ -30,7 +36,7 @@ export function PieCharts() {
         </DropdownMenu>
       </CardHeader>
       <CardContent>
-        <PieChartComponent />
+        <PieChartComponent data={chartData} />
       </CardContent>
     </Card>
   );

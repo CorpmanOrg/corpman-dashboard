@@ -1,3 +1,5 @@
+import ReportingPage from "@/pages/Records/Reporting";
+
 export default function Reporting() {
-  return <div> My Yaz Reporting </div>;
+  return <ReportingPage />;
 }

@@ -13,7 +13,6 @@ const EmailVerify = () => {
   const { mutate, data, isPending, error, isSuccess } = useMutation({
     mutationFn: emailVerifyFn,
     onSuccess: (data) => {
-      console.log("from onSuccess: ", data);
       setTimeout(() => {
         router.push("/auth?mode=signin")
       })

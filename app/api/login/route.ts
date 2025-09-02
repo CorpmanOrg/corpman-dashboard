@@ -10,7 +10,6 @@ export async function POST(req: Request) {
     body: JSON.stringify(body),
   });
 
-  console.log("response was initiated")
 
   if (!response.ok) {
     return NextResponse.json({ error: "Invalid Credentials" }, { status: 401 });
@@ -18,7 +17,6 @@ export async function POST(req: Request) {
 
   const data = await response.json();
   const token = data?.token;
-  console.log("Login Data: ", data)
 
   if (!token) {
     return NextResponse.json({ error: "Token missing" }, { status: 500 });

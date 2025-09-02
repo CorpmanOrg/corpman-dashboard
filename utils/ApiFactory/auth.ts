@@ -15,7 +15,6 @@ interface resendEmail {
 
 export const signupFn = async (payload: signUp) => {
   const res = await Axios.post("/auth/register-org", payload);
-  console.log("From Api Factory: ", res);
   return res;
 };
 

@@ -23,13 +23,12 @@ const Signin = ({ flipBack }: BackProps) => {
   const { mutate: loginUser, isPending } = useMutation({
     mutationFn: loginFn,
     onSuccess: (data) => {
-      console.log("From Login Success: ", data);
       StorageUtil.setSessionItem("logData", data);
       refetchUser();
       router.push("/");
     },
     onError: (error: AxiosError) => {
-      // console.log("From Login Error: ", error);
+      console.log("From Login Error: ", error);
     },
   });
 

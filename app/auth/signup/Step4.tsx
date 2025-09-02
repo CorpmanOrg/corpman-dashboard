@@ -17,7 +17,6 @@ const Step4 = ({ onBack, onNext, formik }: Step4Props) => {
   const { toast } = useToast();
 
    useEffect(() => {
-    console.log("toast should display now")
     toast({
       title: "Toast Test",
       description: "This is a test toast",
@@ -37,7 +36,6 @@ const Step4 = ({ onBack, onNext, formik }: Step4Props) => {
       onNext()
     },
     onError: (error: AxiosError) => {
-      console.log("From Signup: ", (error.response?.data as any)?.errors)
       toast({
         title: "Signup Failed",
         description: ((error.response?.data as any)?.errors || []).join(", ") || "An error occurred during signup.",
@@ -60,8 +58,6 @@ const Step4 = ({ onBack, onNext, formik }: Step4Props) => {
   };
 
   const isStep4Ready = () => formik.values.terms !== false;
-
-  console.log("Step 4: ", { formik });
 
   return (
     <div className="form-step space-y-4">

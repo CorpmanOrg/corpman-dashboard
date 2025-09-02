@@ -99,7 +99,7 @@ export interface ToastState {
   message: string;
 }
 
-export type TableAction = "view" | "edit" | "delete" | "custom";
+export type TableAction = "view" | "edit" | "delete" | "custom" | "approve" | "reject";
 
 export interface TableActionOption {
   key: TableAction;
@@ -109,7 +109,7 @@ export interface TableActionOption {
 
 export type MemberStatusUpdate = {
   memberId: string;
-  status: "active" | "rejected";
+  status: "active" | "rejected" | "approve";
 };
 
 export type ApproveRejectPayload = {
@@ -120,4 +120,36 @@ export type ApproveRejectResponse = {
   success: boolean;
   message: string;
   updatedMembers?: Member[];
+};
+
+export type Statement = {
+  id: string;
+  name: string;
+  date: string; // ISO string
+  description: string;
+  type: "credit" | "debit";
+  amount: number;
+  balance: number;
+  action?: "ActionButton";
+};
+
+export type ReportSummary = {
+  category: "transactions" | "loans" | "investments" | "withdrawals" | "savings";
+  total: number;
+  count: number;
+  growth?: number; // % change, optional
+};
+
+export type ReportTrend = {
+  category: string;
+  data: { date: string; value: number }[];
+};
+
+export type TopUserReport = {
+  id: string;
+  userId: string;
+  name: string;
+  amount: number;
+  category: string;
+  date: string; // <-- Add this line
 };

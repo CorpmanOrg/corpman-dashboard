@@ -1,3 +1,5 @@
+import StatementPage from "@/pages/Records/Statement";
+
 export default function Statement() {
-  return <div> My Yaz Statement </div>;
+  return < StatementPage/>;
 }

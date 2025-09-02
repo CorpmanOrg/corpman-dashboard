@@ -11,9 +11,7 @@ export const getAllMembersFn = async ({
   const data = await res.json();
 
   if (!res.ok) {
-    // console.log("From Errors-Fetch-Members: ", data)
     const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "An unknown error occured";
-
     throw new Error(msg);
   }
   return data;

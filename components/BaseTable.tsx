@@ -7,6 +7,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
+import Pagination from "@mui/material/Pagination";
+import Stack from "@mui/material/Stack";
 import TableRow from "@mui/material/TableRow";
 import { Checkbox, Skeleton } from "@mui/material";
 import TableMoreDetails from "./TableMoreDetails";
@@ -80,11 +82,7 @@ function BaseTable<T extends { id?: string | number }>({
       <TableContainer
         sx={{
           maxHeight: 540,
-          borderRadius: "18px",
-          background: (theme) =>
-            theme.palette.mode === "dark"
-              ? "linear-gradient(135deg, #1e293b 0%, #334155 100%)"
-              : "linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)",
+          borderRadius: "0px",
           boxShadow: "0 8px 32px rgba(0,0,0,0.10)",
           border: "none",
           transition: "all 0.3s ease",
@@ -97,18 +95,29 @@ function BaseTable<T extends { id?: string | number }>({
           <TableHead>
             <TableRow
               sx={{
-                background: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(90deg, #334155 0%, #6366f1 100%)"
-                    : "linear-gradient(90deg, #6366f1 0%, #06b6d4 100%)",
+                backgroundColor: "#f9fdf9", // <-- Add a background color for the header row
+                ".dark &": {
+                  backgroundColor: "#1a1a1a", // <-- Dark mode header background
+                },
               }}
             >
               {showCheckbox && (
-                <TableCell sx={{ backgroundColor: "transparent" }}>
+                <TableCell
+                  sx={{
+                    backgroundColor: "#f9fdf9", // <-- Match header background
+                    width: 48,
+                    textAlign: "center",
+                    ".dark &": {
+                      backgroundColor: "#1a1a1a",
+                    },
+                  }}
+                >
                   <Checkbox
                     sx={{
                       color: "#6366f1",
                       "&.Mui-checked": { color: "#06b6d4" },
+                      margin: "0 auto",
+                      display: "block",
                     }}
                     checked={rows.length > 0 && selectedRows.length === rows.length}
                     onChange={(event) => checkboxOnChange?.(rows, event.target.checked ? "select-all" : "clear-all")}
@@ -127,14 +136,19 @@ function BaseTable<T extends { id?: string | number }>({
                     color: "#222",
                     borderBottom: "none",
                     fontFamily: montserrat.style.fontFamily,
-                    whiteSpace: "nowrap", // <-- Prevent header text wrapping
-                    minWidth: column.minWidth, // <-- Respect minWidth from column definition
+                    whiteSpace: "nowrap",
+                    minWidth: column.minWidth,
+                    backgroundColor: "#f9fdf9", // <-- Match header background
+                    ".dark &": {
+                      color: "#dddadaa1",
+                      backgroundColor: "#1a1a1a",
+                    },
                   }}
                 >
                   {column.label}
                 </TableCell>
               ))}
-              {showDownload && <TableCell sx={{ backgroundColor: "transparent" }} />}
+              {showDownload && <TableCell sx={{ backgroundColor: "#f9fdf9" }} />}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -148,7 +162,7 @@ function BaseTable<T extends { id?: string | number }>({
                         animation="wave"
                         sx={{
                           bgcolor: "#e0e7ff",
-                          borderRadius: "10px",
+                          borderRadius: "0px",
                         }}
                         height={28}
                       />
@@ -170,22 +184,17 @@ function BaseTable<T extends { id?: string | number }>({
                 <TableRow
                   key={row?.id ?? index}
                   hover
-                  sx={{
-                    background: (theme) =>
-                      theme.palette.mode === "dark"
-                        ? index % 2 === 0
-                          ? "#1e293b"
-                          : "#334155"
-                        : index % 2 === 0
-                        ? "#f3f4f6"
-                        : "#e0e7ff",
-                    color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#374151"),
+                  sx={(theme) => ({
+                    background: index % 2 === 0 ? "#f5fff8ff" : "#ecf8efff",
                     transition: "all 0.25s ease",
                     "&:hover": {
-                      background: (theme) => (theme.palette.mode === "dark" ? "#6366f1" : "#dbeafe"),
+                      background: (theme) => (theme.palette.mode === "dark" ? "#6366f1" : "#6366f1"),
                       boxShadow: "0 4px 16px rgba(99,102,241,0.10)",
                     },
-                  }}
+                    ".dark &": {
+                      background: "#071121ff",
+                    },
+                  })}
                 >
                   {showCheckbox && (
                     <TableCell>
@@ -212,6 +221,9 @@ function BaseTable<T extends { id?: string | number }>({
                           fontFamily: montserrat.style.fontFamily,
                           whiteSpace: "nowrap", // <-- Prevent cell text wrapping
                           minWidth: column.minWidth, // <-- Respect minWidth from column definition
+                          ".dark &": {
+                            color: "#dddadaa1",
+                          },
                         }}
                       >
                         {column.id === "ActionButton" ? (
@@ -235,7 +247,7 @@ function BaseTable<T extends { id?: string | number }>({
         </Table>
       </TableContainer>
 
-      {rows.length > 0 && (
+      {/* {rows.length > 0 && (
         <TablePagination
           component="div"
           page={page}
@@ -244,7 +256,101 @@ function BaseTable<T extends { id?: string | number }>({
           rowsPerPageOptions={[10, 50, 100]}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
+          sx={{
+            fontFamily: montserrat.style.fontFamily,
+            background: "#ffffff1b",
+            color: "#bb1c1cff",
+            ".MuiTablePagination-toolbar": {
+              color: "#374151",
+            },
+            ".MuiTablePagination-selectLabel, .MuiTablePagination-input, .MuiTablePagination-displayedRows": {
+              color: "#374151",
+            },
+            ".MuiSvgIcon-root": {
+              color: "#374151",
+            },
+            ".dark &": {
+              background: "#071121ff",
+              color: "#dddadaa1",
+              ".MuiTablePagination-toolbar": {
+                color: "#dddadaa1",
+              },
+              ".MuiTablePagination-selectLabel, .MuiTablePagination-input, .MuiTablePagination-displayedRows": {
+                color: "#dddadaa1",
+              },
+              ".MuiSvgIcon-root": {
+                color: "#dddadaa1",
+              },
+            },
+          }}
         />
+      )} */}
+      {rows.length > 0 && (
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          alignItems="center"
+          spacing={2}
+          sx={{
+            py: 3,
+            px: 2,
+            background: "#fff",
+            ".dark &": {
+              background: "transparent !important",
+            },
+          }}
+        >
+          <Pagination
+            count={totalPage}
+            page={page + 1} // MUI Pagination is 1-based, your page is 0-based
+            onChange={(_, value) => setPage(value - 1)}
+            color="secondary"
+            variant="outlined"
+            shape="circular"
+            size="small"
+            showFirstButton
+            showLastButton
+            sx={{
+              "& .Mui-selected": {
+                backgroundColor: "#14e664ff !important",
+                font: "bold",
+                color: "#000 !important",
+                borderColor: "#14e664ff !important",
+              },
+              "& .MuiPaginationItem-root": {
+                fontFamily: montserrat.style.fontFamily,
+                // backgroundColor: "#14e664ff !important",
+              },
+              "& .MuiPaginationItem-root:hover": {
+                backgroundColor: "#e0f5e8ff !important",
+                color: "#fff !important",
+              },
+              ".dark & .Mui-selected": {
+                backgroundColor: "#d5510fb4 !important",
+                color: "#dddadaa1 !important",
+              },
+              ".dark & .MuiPaginationItem-root": {
+                backgroundColor: "#15012eff !important",
+                color: "#dddadaa1 !important",
+              },
+              ".dark & .MuiPaginationItem-root:hover": {
+                backgroundColor: "#6366f1 !important",
+                borderColor: "none !important",
+                color: "#fff !important",
+              },
+            }}
+          />
+          <span
+            style={{
+              fontFamily: montserrat.style.fontFamily,
+              fontSize: "0.8rem",
+              color: "#14e664ff",
+            }}
+            className="dark:text-[#dddadaa1] font-semibold"
+          >
+            Page {page + 1} of {totalPage}
+          </span>
+        </Stack>
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function POST(req: NextRequest) {
+export async function PATCH(req: NextRequest) {
   const apiUrl = process.env.API_BASE_TEST_URL;
   const cookieStore = await cookies();
   const token = cookieStore.get("myUserToken")?.value;
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const response = await fetch(`${apiUrl}/member/approve/member`, {
-      method: "POST",
+      method: "PATCH", // <-- PATCH instead of POST
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
     const rawText = await response.text();
     console.log("Backend raw response:", rawText);
 
-    // const data = await response.json();
     let data;
     if (contentType && contentType.includes("application/json")) {
       data = JSON.parse(rawText);
@@ -41,17 +40,16 @@ export async function POST(req: NextRequest) {
     console.log("Backend response data:", data);
 
     if (!response.ok) {
-      console.error("Backend returned error:", data);
-      return NextResponse.json({
-        error: data.message || "Backend throwing error",
-        status: response.status,
-        details: data,
-      });
+      // Forward backend error details
+      return NextResponse.json({ error: data.message || "Backend error", details: data }, { status: response.status });
     }
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error("Next.js route error:", error);
-    return NextResponse.json({ error: "Internal server error from frontend" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error from frontend", details: error }, { status: 500 });
   }
 }
+
+// For Next.js App Router, PATCH handler must be exported as PATCH
+export { PATCH as POST };

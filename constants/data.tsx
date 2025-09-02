@@ -1,5 +1,5 @@
 import { SideMenuModules, SubChildren } from "@/types/types";
-import { Home, Users, DollarSign, FileText, Settings, LogOut, CreditCard } from "lucide-react";
+import { Home, Users, DollarSign, FileText, Settings, LogOut, CreditCard, EarthLock } from "lucide-react";
 
 export const SidebarMenuInit: SideMenuModules[] = [
   {
@@ -54,6 +54,13 @@ export const SidebarMenuInit: SideMenuModules[] = [
     href: "/admin/settings",
     icon: <Settings />,
     key: "settings",
+  },
+  {
+    type: "item",
+    label: "Audit Logs",
+    href: "/admin/auditLogs",
+    icon: <EarthLock />,
+    key: "audit",
   },
   {
     type: "item",

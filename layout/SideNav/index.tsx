@@ -179,7 +179,6 @@ export function SideNav() {
                       isCollapsed={isSidebarCollapsed}
                       isActive={activeItem === sideMenu.key}
                       onClick={() => {
-                        console.log("I am clicked");
                         if (sideMenu.key === "logout") logUserOut();
                         // if (sideMenu.key === "logout") logout();
                         else setActiveItem(sideMenu.key);

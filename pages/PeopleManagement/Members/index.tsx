@@ -1,32 +1,47 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
-import { Dummy_Memebers_Column } from "@/components/assets/data";
+import { Dummy_Memebers_Column, dummyMembers } from "@/components/assets/data";
 import { Member, TError, ToastSeverity, ToastState, TableActionOption } from "@/types/types";
-import { getAllMembersFn } from "@/utils/ApiFactory/member";
+import { getAllMembersFn, approveOrRejectMembersFn } from "@/utils/ApiFactory/member";
+import { StatCardOpposite } from "@/components/Statistics/MainStatisticsCard.tsx";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 import Toastbar from "@/components/Toastbar";
 import axios from "axios";
 import Image from "next/image";
 import BaseTable from "@/components/BaseTable";
+import { BarChart3, User } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ActivityMiniChart, ActivityBarMiniChart, ActivityPieMiniChart } from "@/components/dashboard-charts";
 
 export type MemberWithActions = Member & { ActionButton: string };
 
 export default function MembersPage() {
-  const { modal, closeModal } = useModal();
+  const { modal, openModal, closeModal } = useModal();
   const { user, isSuperAdmin, isAdmin } = useAuth();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const status: string = "";
 
+  type BarDataType = { name: string; value: number };
+  const BAR_DATA: BarDataType[] = [
+    { name: "Total Joined", value: 15 },
+    { name: "Active", value: 2 },
+    { name: "Pending", value: 4 },
+  ];
+
+  const COLORS = ["#22c55e", "#065f46", "#4ade80"];
+
   const memberActionOptions: TableActionOption[] = [
     { key: "view", label: "View Details" },
-    { key: "edit", label: "Edit" },
-    { key: "delete", label: "Delete" },
+    // { key: "edit", label: "Edit" },
+    // { key: "delete", label: "Delete" },
+    { key: "approve", label: "Approve" },
+    { key: "reject", label: "Reject" },
   ];
 
   const [toast, setToast] = useState<ToastState>({
@@ -52,7 +67,7 @@ export default function MembersPage() {
 
   const {
     data: membersData,
-    isLoading,
+    isLoading: MemberLoading,
     isSuccess,
     isError,
     error,
@@ -66,6 +81,47 @@ export default function MembersPage() {
         status,
       }),
     enabled: !!user?.id,
+  });
+
+  function getPaginatedDummyData(page: number, rowsPerPage: number) {
+    const totalRecords = dummyMembers.length;
+    const totalPages = Math.ceil(totalRecords / rowsPerPage);
+    const startIdx = page * rowsPerPage;
+    const endIdx = startIdx + rowsPerPage;
+    const paginatedData = dummyMembers.slice(startIdx, endIdx);
+
+    return {
+      currentPage: page + 1,
+      data: paginatedData,
+      nextPage: page + 1 < totalPages ? page + 2 : null,
+      totalPages,
+      totalRecords,
+    };
+  }
+
+  const dummyApiResponse = getPaginatedDummyData(page, rowsPerPage);
+
+  const select = (data: any) => {
+    const transform = data?.data?.map((itm: any) => ({
+      ...itm,
+      action: "ActionButton",
+    }));
+    const totalCount = data?.totalRecords;
+    const pagesCount = data?.totalPages;
+    return { transform, totalCount, pagesCount };
+  };
+
+  const { transform, totalCount, pagesCount } = select(dummyApiResponse);
+
+  const mutation = useMutation({
+    mutationFn: approveOrRejectMembersFn,
+    onSuccess: (data) => {
+      showToast("success", data.message || "Action successful!");
+      // Optionally refetch members here
+    },
+    onError: (error: any) => {
+      showToast("error", error.message || "Action failed!");
+    },
   });
 
   useEffect(() => {
@@ -86,16 +142,57 @@ export default function MembersPage() {
   const handleActionClick = (action: TableActionOption, columnId: string, row: MemberWithActions) => {
     switch (action.key) {
       case "view":
-        // open view modal
+        openModal("details", {
+          title: "Member Details",
+          content: (
+            <div>
+              <p>
+                <strong>Name:</strong> {row.firstName} {row.surname}
+              </p>
+              <p>
+                <strong>Email:</strong> {row.email}
+              </p>
+              {/* Add more fields as needed */}
+            </div>
+          ),
+        });
         break;
       case "edit":
-        // open edit modal
+        openModal("form", { member: row });
         break;
       case "delete":
-        // confirm and delete
+        openModal("confirm", {
+          message: `Are you sure you want to delete ${row.firstName} ${row.surname}?`,
+          onConfirm: () => {
+            // Call your delete API here
+            closeModal();
+          },
+        });
+        break;
+      case "approve":
+        openModal("confirm", {
+          message: `Approve member ${row.firstName} ${row.surname}?`,
+          onConfirm: () => {
+            // console.log("Approving member:", row);
+            mutation.mutate({
+              updates: [{ memberId: row._id, status: "active" }],
+            });
+            closeModal();
+          },
+        });
+        break;
+      case "reject":
+        openModal("confirm", {
+          message: `Reject member ${row.firstName} ${row.surname}?`,
+          onConfirm: () => {
+            mutation.mutate({
+              updates: [{ memberId: row._id, status: "rejected" }],
+            });
+            closeModal();
+          },
+        });
         break;
       default:
-        // custom action
         break;
     }
   };
@@ -104,19 +201,23 @@ export default function MembersPage() {
     membersData?.members?.map((m, idx) => ({ ...m, id: m._id ?? idx, ActionButton: "ActionButton" })) || [];
 
   const last5Members = useMemo<Member[]>(() => {
-    if (!membersData?.members) return [];
+    // if (!membersData?.members) return [];
+    if (!dummyMembers) return [];
 
-    return [...membersData.members]
+    // return [...membersData.members]
+    return [...dummyMembers]
       .sort((a, b) => {
         const dateA = a.joinedAt ? new Date(a.joinedAt).getTime() : 0;
         const dateB = b.joinedAt ? new Date(b.joinedAt).getTime() : 0;
         return dateA - dateB;
       })
-      .slice(-5);
+      .slice(-4);
   }, [membersData]);
 
+  console.log("From Mebers-Dummy-Reset: ", { transform, totalCount, pagesCount });
+
   return (
-    <div className="p-6 space-y-8">
+    <div className="px-6 space-y-8">
       {/* 🔹 Top Section: Cards */}
       <Toastbar open={toast.open} message={toast.message} severity={toast.severity} onClose={handleCloseToast} />
       <ConfirmModal
@@ -131,39 +232,33 @@ export default function MembersPage() {
       </DetailsModal>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {last5Members.map((member, idx) => (
-          <div
+          <StatCardOpposite
             key={idx}
-            className="bg-gradient-to-r from-[#4ade80] to-[#86efac] dark:from-green-500 dark:to-green-900 border border-green-300 dark:border-green-700 shadow-sm hover:shadow-md transition-shadow rounded-2xl p-4 rounded-2xl shadow-sm p-5 flex flex-col items-center text-center cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-200 ease-in-out"
-          >
-            <div className="w-16 h-16 mb-3 rounded-full overflow-hidden border border-green-100 dark:border-green-900/30 bg-gray-100 dark:bg-black">
-              {member.image ? (
-                <Image
-                  src={member.image || "/default-avatar.png"}
-                  alt={member.name || "Member"}
-                  width={64}
-                  height={64}
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-200">
-                  <span className="text-xl">👤</span>
-                </div>
-              )}
-            </div>
-            <h3 className="font-semibold text-gray-800 dark:text-gray-200">{member.name}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{member.contact}</p>
-          </div>
+            title={`${member.firstName} ${member.surname}` || "Yazid"}
+            value={member.mobileNumber || "N/A"}
+            icon={member.image || <User className="h-5 w-5" />}
+          />
         ))}
+
+        {/* Activity Bar Chart Card */}
+        <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow dark:shadow-green-900/10">
+          <div className="text-white p-4 h-full flex flex-col justify-between">
+            <div className="h-[100px]">
+              <ActivityPieMiniChart />
+            </div>
+          </div>
+        </Card>
       </div>
 
       <BaseTable<MemberWithActions>
-        rows={myData || []}
+        // rows={myData || []}
+        rows={transform || []}
         columns={Dummy_Memebers_Column}
         page={page}
         setPage={setPage}
         rowsPerPage={rowsPerPage}
         setRowsPerPage={setRowsPerPage}
-        totalPage={myData?.length ?? 0}
+        totalPage={totalCount ?? 0}
         actionOptions={memberActionOptions}
         actionItemOnClick={handleActionClick}
       />
