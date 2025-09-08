@@ -52,6 +52,7 @@ export function StatementFilterBar({ filters, onChange }: StatementFilterProps) 
           { label: "Credit", value: "credit" },
           { label: "Debit", value: "debit" },
         ]}
+        className="min-w-[140px] rounded-md p-1 bg-[#fff] dark:bg-[#071121ff] border border-[#e5e7eb] dark:border-[#222c3c]"
       />
       <Input
         type="number"

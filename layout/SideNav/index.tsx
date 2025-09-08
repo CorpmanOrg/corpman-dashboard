@@ -45,7 +45,7 @@ interface SidebarItemProps {
 function SidebarCategory({ icon, label, href, isCollapsed, isExpanded, onToggle, children }: SidebarCategoryProps) {
   const categoryHeader = (
     <div
-      className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors text-gray-700 dark:text-gray-300 hover: bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400`}
+      className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors text-gray-700 dark:text-gray-100 hover: bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400`}
       onClick={onToggle}
       // href={href}
     >
@@ -98,10 +98,10 @@ function SidebarSubItem({ label, chref, isCollapsed, isActive, onClick }: Sideba
 function SidebarItem({ icon, label, href, isCollapsed, isActive = false, onClick = () => {} }: SidebarItemProps) {
   const content = (
     <Link
-      className={`flex items-center p-2 rounded-md transition-colors cursor-pointer ${
+      className={`flex font-medium items-center p-2 rounded-md transition-colors cursor-pointer ${
         isActive
           ? "bg-gradient-to-r from-[#19d21f] to-[#5aed5f] text-white dark:from-green-600 dark:to-green-500"
-          : "text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400"
+          : "text-gray-700 dark:text-gray-100 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400"
       }`}
       onClick={onClick}
       href={href}

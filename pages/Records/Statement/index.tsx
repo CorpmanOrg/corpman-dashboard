@@ -16,19 +16,38 @@ import Toastbar from "@/components/Toastbar";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 
-
 export type StatementWithActions = Statement & { ActionButton: string };
 
 export const Dummy_Statements_Column: Column<StatementWithActions>[] = [
   { id: "name", label: "Name", minWidth: 100 },
   { id: "amount", label: "Amount", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
-  { id: "type", label: "Type", minWidth: 80 },
+  {
+    id: "type",
+    label: "Type",
+    minWidth: 80,
+    format: (v) => (
+      <span
+        style={{
+          display: "inline-block",
+          padding: "4px 16px",
+          borderRadius: "12px",
+          fontWeight: 600,
+          fontSize: "0.95rem",
+          backgroundColor: v === "credit" ? "#e6f9ed" : "#fdeaea",
+          color: v === "credit" ? "#166534" : "#991b1b",
+          border: "1px solid",
+          borderColor: v === "credit" ? "#b6f2d7" : "#f5c2c7",
+        }}
+      >
+        {v === "credit" ? "Credit" : "Debit"}
+      </span>
+    ),
+  },
   { id: "balance", label: "Balance", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
   { id: "description", label: "Description", minWidth: 180 },
   { id: "date", label: "Date", minWidth: 120, format: (v) => new Date(v).toLocaleDateString() },
   { id: "ActionButton", label: "Actions", align: "center", minWidth: 120 },
 ];
-
 
 const statementActionOptions: TableActionOption[] = [
   { key: "view", label: "View Statement" },

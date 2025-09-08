@@ -108,14 +108,14 @@ function BaseTable<T extends { id?: string | number }>({
                     width: 48,
                     textAlign: "center",
                     ".dark &": {
-                      backgroundColor: "#1a1a1a",
+                      backgroundColor: "#f9fdf9",
                     },
                   }}
                 >
                   <Checkbox
                     sx={{
-                      color: "#6366f1",
-                      "&.Mui-checked": { color: "#06b6d4" },
+                      color: "#33ef3fff",
+                      "&.Mui-checked": { color: "#33ef3fff" },
                       margin: "0 auto",
                       display: "block",
                     }}
@@ -140,8 +140,8 @@ function BaseTable<T extends { id?: string | number }>({
                     minWidth: column.minWidth,
                     backgroundColor: "#f9fdf9", // <-- Match header background
                     ".dark &": {
-                      color: "#dddadaa1",
-                      backgroundColor: "#1a1a1a",
+                      color: "black",
+                      backgroundColor: "#f9fdf9f6",
                     },
                   }}
                 >
@@ -193,6 +193,7 @@ function BaseTable<T extends { id?: string | number }>({
                     },
                     ".dark &": {
                       background: "#071121ff",
+                      // background: "#0a0e1a",
                     },
                   })}
                 >
@@ -200,8 +201,8 @@ function BaseTable<T extends { id?: string | number }>({
                     <TableCell>
                       <Checkbox
                         sx={{
-                          color: "#6366f1",
-                          "&.Mui-checked": { color: "#06b6d4" },
+                          color: "#33ef3fff",
+                          "&.Mui-checked": { color: "#33ef3fff" },
                         }}
                         checked={row.id ? selectedRows.includes(row.id) : false}
                         onChange={() => checkboxOnChange?.(row)}
@@ -222,7 +223,7 @@ function BaseTable<T extends { id?: string | number }>({
                           whiteSpace: "nowrap", // <-- Prevent cell text wrapping
                           minWidth: column.minWidth, // <-- Respect minWidth from column definition
                           ".dark &": {
-                            color: "#dddadaa1",
+                            color: "#dadddaa1",
                           },
                         }}
                       >

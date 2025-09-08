@@ -8,7 +8,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <TooltipProvider>
       <div className="flex h-screen">
         <SideNav />
-        <main className="flex-1 flex flex-col overflow-auto bg-[#f8faf8] dark:bg-gray-950">
+        <main className="flex-1 flex flex-col overflow-auto bg-white dark:bg-gray-950">
           <Header />
           {children}
         </main>
