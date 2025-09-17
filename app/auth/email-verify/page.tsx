@@ -1,5 +1,3 @@
-"use client";
-
 import React, { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
