@@ -4,13 +4,14 @@ import { Bell, User } from "lucide-react";
 import { Button } from "../ui/button";
 import { ThemeToggle } from "../theme-toggle";
 import { useAuth } from "@/context/AuthContext";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
 
 export function Header() {
-  const { user } = useAuth();
+  const { user, setRole } = useAuth();
 
   return (
     <div>
-      <header className="dark:bg-gray-900 h-16 px-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between shadow-sm">
+      <header className="bg-[#f8faf8] dark:bg-gray-900 h-16 px-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between shadow-sm">
         {/* Left Section */}
         <div>
           <h2 className="text-lg font-medium text-[#0e4430] dark:text-green-400">
@@ -32,13 +33,17 @@ export function Header() {
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-[#0e4430] dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
-          >
-            <User className="h-5 w-5" />
-          </Button>
+          <Select value={user?.role} onValueChange={(value) => setRole(value as "superAdmin" | "admin" | "member")}>
+            <SelectTrigger className="w-[140px] text-[#0e4430] dark:text-green-400">
+              <User className="h-5 w-5 mr-2 inline" />
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="superAdmin">Super Admin</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="member">Member</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </header>
     </div>

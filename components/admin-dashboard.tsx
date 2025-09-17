@@ -2,7 +2,7 @@
 
 import { ReactNode, FC, useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { TooltipProvider, } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "./Header/Header";
 import { SideNav } from "@/layout/SideNav";
 import { MainStatisticsCard } from "./Statistics/MainStatisticsCard.tsx";
@@ -10,6 +10,7 @@ import { LineCharts } from "./Charts/LineCharts";
 import { PieCharts } from "./Charts/PieCharts";
 import { Reminders } from "./Reminders/Reminders";
 import { AdvertCarousel } from "./Carousel/AdvertCarousel";
+import { dummyLineData, dummyPieData } from "./assets/data";
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -43,8 +44,8 @@ export function AdminDashboard() {
             <MainStatisticsCard />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-              <LineCharts />
-              <PieCharts />
+              <LineCharts data={dummyLineData} />
+              <PieCharts data={dummyPieData} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">

@@ -11,9 +11,9 @@ import {
 import { Home, Users, DollarSign, FileText, Settings, LogOut } from "lucide-react";
 import {} from "@/types/types";
 
-import { MemberWithActions } from "@/pages/PeopleManagement/Members";
+import { MemberWithActions } from "@/app/admin/peopleManagement/members/page";
 import { Column } from "@/types/types";
-import { StatementWithActions } from "@/pages/Records/Statement";
+import { StatementWithActions } from "@/app/admin/records/statement/page";
 
 export const SignUpInitialValues: SignUpFormValues = {
   name: "",
@@ -758,3 +758,10 @@ export const dummyPieData = [
   { label: "Category D", value: 15 },
   { label: "Category E", value: 5 },
 ];
+
+export const MemberContributionInitialValues = {
+  amount: "",
+  type: "",
+  description: "",
+  payment_receipt: null, // for file upload
+};

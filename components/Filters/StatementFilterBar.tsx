@@ -55,23 +55,27 @@ export function StatementFilterBar({ filters, onChange }: StatementFilterProps) 
         className="min-w-[140px] rounded-md p-1 bg-[#fff] dark:bg-[#071121ff] border border-[#e5e7eb] dark:border-[#222c3c]"
       />
       <Input
+        name="minAmount"
         type="number"
         placeholder="Min Amount"
         value={filters.minAmount ?? ""}
         onChange={(e) => onChange({ ...filters, minAmount: Number(e.target.value) })}
       />
       <Input
+        name="maxAmount"
         type="number"
         placeholder="Max Amount"
         value={filters.maxAmount ?? ""}
         onChange={(e) => onChange({ ...filters, maxAmount: Number(e.target.value) })}
       />
       <Input
+        name="startDate"
         type="date"
         value={filters.startDate ?? ""}
         onChange={(e) => onChange({ ...filters, startDate: e.target.value })}
       />
       <Input
+        name="endDate"
         type="date"
         value={filters.endDate ?? ""}
         onChange={(e) => onChange({ ...filters, endDate: e.target.value })}

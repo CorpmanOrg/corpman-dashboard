@@ -1,21 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import type { AreaProps, TooltipProps, XAxisProps, YAxisProps, PieProps, BarProps } from "recharts";
 import {
-  Area,
-  AreaChart,
   ResponsiveContainer,
+  AreaChart,
+  Area,
   Tooltip,
   XAxis,
   YAxis,
-  Pie,
   PieChart,
+  Pie,
   Cell,
   BarChart,
   Bar,
 } from "recharts";
 import { useTheme } from "@/components/theme-provider";
 
+// Dynamically import recharts components (client-side only)
+// const ResponsiveContainer = dynamic(() => import("recharts").then((m) => ({ default: m.ResponsiveContainer })), {
+//   ssr: false,
+// });
+// const AreaChart = dynamic(() => import("recharts").then((m) => ({ default: m.AreaChart })), { ssr: false });
+// const Area = dynamic(() => import("recharts").then((m) => ({ default: m.Area })), { ssr: false });
+// const Tooltip = dynamic(() => import("recharts").then((m) => ({ default: m.Tooltip })), { ssr: false });
+// const XAxis = dynamic(() => import("recharts").then((m) => ({ default: m.XAxis })), { ssr: false });
+// const YAxis = dynamic(() => import("recharts").then((m) => ({ default: m.YAxis })), { ssr: false });
+// const PieChart = dynamic(() => import("recharts").then((m) => ({ default: m.PieChart })), { ssr: false });
+// const Pie = dynamic(() => import("recharts").then((m) => ({ default: m.Pie })), { ssr: false });
+// const Bar = dynamic(() => import("recharts").then((m) => ({ default: m.Bar })), { ssr: false });
+// const Cell = dynamic(() => import("recharts").then((m) => ({ default: m.Cell })), { ssr: false });
 // Sample data for the line chart
 const activityData = [
   { name: "Jan", value: 400 },
@@ -75,7 +91,6 @@ export function LineChart({ data }: { data?: { name: string; value: number }[] }
     return <div className="h-[300px] flex items-center justify-center">Loading chart...</div>;
   }
 
-  // Use provided data or fallback to default
   const chartData = data ?? activityData;
 
   return (
@@ -129,7 +144,6 @@ export function PieChartComponent({ data }: { data?: { name: string; value: numb
     return <div className="h-[300px] flex items-center justify-center">Loading chart...</div>;
   }
 
-  // Use provided data or fallback to default
   const chartData = data ?? breakdownData;
 
   return (
@@ -176,7 +190,6 @@ export function PieChartComponent({ data }: { data?: { name: string; value: numb
 export function ActivityMiniChart() {
   const [isMounted, setIsMounted] = useState(false);
 
-  // Sample data for the mini activity chart
   const miniActivityData = [
     { name: "1", value: 20 },
     { name: "2", value: 40 },
@@ -253,7 +266,6 @@ export function ActivityPieMiniChart() {
               <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
             ))}
           </Pie>
-          {/* Center percentage text inside the arc */}
           <text
             x="50%"
             y="80%"
@@ -261,14 +273,12 @@ export function ActivityPieMiniChart() {
             dominantBaseline="middle"
             fontSize={14}
             fontWeight={700}
-            fill={isDark ? "#fff" : "#111827"} // <-- use fill for dark mode
+            fill={isDark ? "#fff" : "#111827"}
           >
             {percent}%
           </text>
         </PieChart>
       </ResponsiveContainer>
-
-      {/* Legend below chart */}
       <div className="flex items-center justify-center gap-4 mt-1 w-full">
         {pieData.map((entry, idx) => (
           <div key={entry.name} className="flex items-center gap-1">
@@ -310,7 +320,6 @@ export function ActivityBarMiniChart() {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      {/* Center total value */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-xl font-bold text-white drop-shadow">{total}</span>
         <span className="text-xs mt-1 px-2 py-0.5 rounded bg-green-100/60 text-green-900 font-semibold shadow">
