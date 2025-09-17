@@ -36,8 +36,8 @@ const Step1 = ({ onNext, formik }: Step1Props) => {
           value={formik.values.email}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          touched={formik.touched.email}
-          error={formik.errors.email}
+          // touched={formik.touched.email}
+          // error={formik.errors.email}
           placeholder="Enter your email"
         />
       </div>

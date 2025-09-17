@@ -36,8 +36,8 @@ const Step2 = ({ onNext, onBack, formik }: Step2Props) => {
           value={formik.values.password}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          touched={formik.touched.password}
-          error={formik.errors.password}
+          // touched={formik.touched.password}
+          // error={formik.errors.password}
           placeholder="Enter your password"
         />
       </div>
@@ -50,8 +50,8 @@ const Step2 = ({ onNext, onBack, formik }: Step2Props) => {
           value={formik.values.confirmPassword}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          touched={formik.touched.confirmPassword}
-          error={formik.errors.confirmPassword}
+          // touched={formik.touched.confirmPassword}
+          // error={formik.errors.confirmPassword}
           placeholder="Enter your confirmPassword"
         />
       </div>

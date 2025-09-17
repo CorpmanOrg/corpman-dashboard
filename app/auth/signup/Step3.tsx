@@ -37,8 +37,8 @@ const Step3 = ({ onNext, onBack, formik }: Step3Props) => {
           value={formik.values.name}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          touched={formik.touched.name}
-          error={formik.errors.name}
+          // touched={formik.touched.name}
+          // error={formik.errors.name}
           placeholder="Enter your company name"
         />
       </div>
@@ -51,8 +51,8 @@ const Step3 = ({ onNext, onBack, formik }: Step3Props) => {
           value={formik.values.address}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          touched={formik.touched.address}
-          error={formik.errors.address}
+          // touched={formik.touched.address}
+          // error={formik.errors.address}
           placeholder="Enter your company address"
         />
       </div>
