@@ -18,13 +18,13 @@ interface BackProps {
 
 const Signin = ({ flipBack }: BackProps) => {
   const router = useRouter();
-  const { refetchUser } = useAuth();
+  // const { refetchUser } = useAuth();
 
   const { mutate: loginUser, isPending } = useMutation({
     mutationFn: loginFn,
     onSuccess: (data) => {
       StorageUtil.setSessionItem("logData", data);
-      refetchUser();
+      // refetchUser();
       router.push("/");
     },
     onError: (error: AxiosError) => {
@@ -59,8 +59,8 @@ const Signin = ({ flipBack }: BackProps) => {
                   value={formik.values.email}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  touched={formik.touched.email}
-                  error={formik.errors.email}
+                  // touched={formik.touched.email}
+                  // error={formik.errors.email}
                   placeholder="Enter your email"
                 />
               </div>
@@ -73,8 +73,8 @@ const Signin = ({ flipBack }: BackProps) => {
                   value={formik.values.password}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  touched={formik.touched.password}
-                  error={formik.errors.password}
+                  // touched={formik.touched.password}
+                  // error={formik.errors.password}
                   placeholder="Enter your password"
                 />
               </div>
