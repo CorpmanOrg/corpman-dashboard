@@ -13,7 +13,7 @@ import Step1 from "./signup/Step1";
 import Step2 from "./signup/Step2";
 import Step3 from "./signup/Step3";
 import Step4 from "./signup/Step4";
-import Signin from "./signin/page";
+import Signin from "./signin/SigninForm";
 import EmailVerification from "./signup/EmailVerification";
 import CorpManLogo from "../../components/assets/img/Corpman-logo.png";
 

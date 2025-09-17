@@ -1,4 +1,5 @@
-'use-client'
+"use client";
+
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { signupFn } from "@/utils/ApiFactory/auth";
@@ -16,13 +17,13 @@ interface Step4Props {
 const Step4 = ({ onBack, onNext, formik }: Step4Props) => {
   const { toast } = useToast();
 
-   useEffect(() => {
+  useEffect(() => {
     toast({
       title: "Toast Test",
       description: "This is a test toast",
       variant: "default",
     });
-  }, []);
+  }, [toast]);
 
   const { mutate: signupUser, isPending } = useMutation({
     mutationFn: signupFn,
@@ -32,13 +33,14 @@ const Step4 = ({ onBack, onNext, formik }: Step4Props) => {
         description: "Please check your email to verify your account",
         duration: 6000,
       });
-      // formik.resetForm();
-      onNext()
+      onNext();
     },
     onError: (error: AxiosError) => {
       toast({
         title: "Signup Failed",
-        description: ((error.response?.data as any)?.errors || []).join(", ") || "An error occurred during signup.",
+        description:
+          ((error.response?.data as any)?.errors || []).join(", ") ||
+          "An error occurred during signup.",
         variant: "destructive",
         duration: 6000,
       });
@@ -50,8 +52,8 @@ const Step4 = ({ onBack, onNext, formik }: Step4Props) => {
     const step4Fields = ["terms"];
     const step4Errors = step4Fields.filter((field) => errors[field]);
     if (step4Errors.length === 0) {
-      const {terms, ...payload} =  formik.values;
-      signupUser(payload)
+      const { terms, ...payload } = formik.values;
+      signupUser(payload);
     } else {
       formik.setTouched({ terms: true });
     }
@@ -85,7 +87,6 @@ const Step4 = ({ onBack, onNext, formik }: Step4Props) => {
           checked={formik.values.terms}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          className=""
         />
         <div className="grid gap-1.5 leading-none">
           <Label
