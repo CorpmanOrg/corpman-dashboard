@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-type ModalType = "confirm" | "form" | "details" | null;
+type ModalType = "confirm" | "form" | "details" | "reject" | null;
 
 interface ModalState {
   type: ModalType;

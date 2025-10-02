@@ -12,9 +12,33 @@ interface StatCardProps {
   iconBg?: string; // background color for the icon (deprecated)
   iconGradient?: string; // gradient classes for the icon
   children?: ReactNode;
+  loading?: boolean;
 }
 
-export function StatCard({ icon, title, value, color, iconBg, iconGradient }: StatCardProps) {
+export function StatCard({ icon, title, value, color, iconBg, iconGradient, loading }: StatCardProps) {
+  if (loading) {
+    return (
+      <Card
+        className="overflow-hidden shadow-md transition-shadow border border-gray-100 dark:border-gray-800 dark:shadow-green-900/10 dark:bg-gray-900 animate-pulse"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <div className={`p-4 ${color ? color : "bg-white dark:bg-gray-900"}`}>
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="h-7 w-32 rounded bg-gray-300 dark:bg-gray-600" />
+            </div>
+            <div className="h-12 w-12 rounded-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600" />
+          </div>
+        </div>
+        <div className="border-t border-gray-100 dark:border-gray-800 p-3 bg-[#f9fdf9] dark:bg-gray-900/40">
+          <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700 mx-auto" />
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-800 dark:shadow-green-900/10 dark:bg-gray-900">
       <div className={`p-4 ${color ? color : "bg-white dark:bg-gray-900"}`}>
@@ -44,11 +68,17 @@ export function StatCard({ icon, title, value, color, iconBg, iconGradient }: St
   );
 }
 
-export function StatCardOpposite({ icon, title, value }: StatCardProps) {
+export function StatCardOpposite({ icon, title, value, iconGradient }: StatCardProps) {
   return (
     <Card className="h-full flex flex-col justify-between overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-800 dark:shadow-green-900/10 dark:bg-gray-900">
       <div className="p-5 bg-white dark:bg-gray-900 flex items-center gap-4">
-        <div className="bg-gradient-to-r from-[#19d21f] to-[#5aed5f] dark:from-green-600 dark:to-green-500 p-4 rounded-full text-white flex items-center justify-center">
+        <div
+          className={`${
+            iconGradient
+              ? iconGradient
+              : "bg-gradient-to-r from-[#19d21f] to-[#5aed5f] dark:from-green-600 dark:to-green-500"
+          } p-4 rounded-full text-white flex items-center justify-center`}
+        >
           {icon}
         </div>
         <div className="flex flex-col justify-center flex-1">

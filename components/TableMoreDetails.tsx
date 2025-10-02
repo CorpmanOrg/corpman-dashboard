@@ -24,11 +24,32 @@ const TableMoreDetails: React.FC<TableMoreDetailsProps> = ({ options, itemOnClic
     if (open) setOpen(false);
   }, containerRef);
 
+  // 🔹 Dynamic grid + width
+  const cols = Math.min(options.length, 3); // up to 3 per row
+  const widthClass =
+    options.length === 1 ? "w-10" : options.length === 2 ? "w-20" : "w-32";
+
+  // 🔹 Dynamic positioning (closer if fewer actions)
+  const positionClass =
+    options.length === 1
+      ? "left-0 -top-10" // snug above
+      : options.length === 2
+      ? "-left-4 -top-10"
+      : "-left-8 -top-10"; // wider for 3+
+
   return (
-    <div ref={containerRef} className="relative flex justify-end item-end h-full">
-      <EllipsisVertical className="cursor-pointer block" onClick={() => setOpen((p) => !p)} />
+    <div ref={containerRef} className="relative flex justify-end items-end h-full">
+      <EllipsisVertical
+        className="cursor-pointer block"
+        onClick={() => setOpen((p) => !p)}
+      />
       {open && (
-        <div className="absolute -left-8 -top-8 mt-2 w-32 bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black/5 z-20 rounded-lg border px-2 py-2 grid grid-cols-3 gap-2 overflow-hidden">
+        <div
+          className={`absolute ${positionClass} mt-2 ${widthClass} 
+                      bg-white dark:bg-gray-800 shadow-lg 
+                      ring-1 ring-black/5 z-20 rounded-lg border px-2 py-2 
+                      grid grid-cols-${cols} gap-2 overflow-hidden`}
+        >
           {options.map((itm) => (
             <button
               key={itm.key}

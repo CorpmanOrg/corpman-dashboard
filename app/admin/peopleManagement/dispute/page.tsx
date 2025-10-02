@@ -6,7 +6,7 @@ import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
 import { Dummy_Memebers_Column, dummyMembers } from "@/components/assets/data";
 import { Member, TError, ToastSeverity, ToastState, TableActionOption } from "@/types/types";
-import { getAllMembersFn, approveOrRejectMembersFn } from "@/utils/ApiFactory/member";
+import { getAllMembersFn, approveOrRejectMembersFn } from "@/utils/ApiFactory/admin";
 import { StatCardOpposite } from "@/components/Statistics/StatCard";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
@@ -16,15 +16,13 @@ import { User, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityPieMiniChart } from "@/components/dashboard-charts";
 import MemberContributionForm from "@/components/Contributions/MemberContributionForm";
-import { MemberContributionInitialValues } from "@/components/assets/data";
-import { MemberContributionSchema } from "@/utils/Yup/schema";
 import RecentActivities from "@/components/RecentActivities/RecentActivities";
 
 export type MemberWithActions = Member & { ActionButton: string };
 
 export default function MembersPage() {
   const { modal, openModal, closeModal } = useModal();
-  const { user } = useAuth();
+  const { user, currentRole } = useAuth();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const status: string = "";
@@ -74,15 +72,15 @@ export default function MembersPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["fetch-members-by-admin", user?.id, page, rowsPerPage, status],
+    queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, status],
     queryFn: () =>
       getAllMembersFn({
-        orgId: user?.id!,
+        orgId: user?.user?._id!,
         page,
         limit: rowsPerPage,
         status,
       }),
-    enabled: !!user?.id,
+    enabled: !!user?.user?._id,
   });
 
   function getPaginatedDummyData(page: number, rowsPerPage: number) {
@@ -199,8 +197,8 @@ export default function MembersPage() {
     }
   };
 
-  const myData: MemberWithActions[] =
-    membersData?.members?.map((m, idx) => ({ ...m, id: m._id ?? idx, ActionButton: "ActionButton" })) || [];
+  // const myData: MemberWithActions[] =
+  //   membersData?.members?.map((m, idx) => ({ ...m, id: m._id ?? idx, ActionButton: "ActionButton" })) || [];
 
   const last5Members = useMemo<Member[]>(() => {
     // if (!membersData?.members) return [];
@@ -216,7 +214,7 @@ export default function MembersPage() {
       .slice(-3);
   }, [membersData]);
 
-  console.log("From Mebers-Dummy-Reset: ", { transform, totalCount, pagesCount });
+  // console.log("From Mebers-Dummy-Reset: ", { transform, totalCount, pagesCount });
 
   return (
     <div className="px-6 space-y-8">
@@ -232,7 +230,7 @@ export default function MembersPage() {
       <DetailsModal open={modal.type === "details"} onClose={closeModal} title={modal.data?.title}>
         {modal.data?.content}
       </DetailsModal>
-      {user?.role === "admin" && (
+      {currentRole === "admin" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {last5Members.map((member, idx) => (
             <StatCardOpposite
@@ -252,7 +250,7 @@ export default function MembersPage() {
           </Card>
         </div>
       )}
-      {user?.role === "member" && (
+      {currentRole === "member" && (
         <Card className="shadow-md bg-white hover:shadow-lg transition-shadow border-t-4 border-t-[#19d21f] dark:shadow-green-900/10 dark:bg-gray-900 dark:border-t-green-600">
           <CardHeader className="flex flex-row items-center justify-between pb-2 bg-[#f9fdf9] dark:bg-gray-900/50">
             <CardTitle className="text-lg font-bold text-[#0e4430] dark:text-green-400">Dispute</CardTitle>
@@ -262,12 +260,10 @@ export default function MembersPage() {
               <div>
                 <MemberContributionForm
                   moduleType="contribution"
-                  initialValues={MemberContributionInitialValues}
-                  validationSchema={MemberContributionSchema}
-                  onSubmit={(payload) => {
-                    // handle form submission here
-                    console.log("Submitted payload:", payload);
-                  }}
+                  // onSubmit={(payload) => {
+                  //   // handle form submission here
+                  //   console.log("Submitted payload:", payload);
+                  // }}
                 />
               </div>
               <div className="pt-8 flex-1">

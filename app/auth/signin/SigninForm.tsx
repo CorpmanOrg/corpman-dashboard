@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { Formik, Form } from "formik";
@@ -11,36 +11,73 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import { StorageUtil } from "@/utils/StorageUtil";
+import Toastbar from "@/components/Toastbar";
+import { ToastSeverity, ToastState } from "@/types/types";
 
 interface BackProps {
   flipBack: (val: boolean) => void;
 }
 
-const Signin = ({ flipBack }: BackProps) => {
+const Signin = () => {
   const router = useRouter();
-  // const { refetchUser } = useAuth();
+  const { refetchUser } = useAuth();
+
+  const [toast, setToast] = useState<ToastState>({
+    open: false,
+    severity: "success",
+    message: "",
+  });
+
+  const showToast = (severity: ToastSeverity, message: string) => {
+    setToast({
+      open: true,
+      severity,
+      message,
+    });
+  };
+
+  const handleCloseToast = () => {
+    setToast((prevS) => ({
+      ...prevS,
+      open: false,
+    }));
+  };
 
   const { mutate: loginUser, isPending } = useMutation({
     mutationFn: loginFn,
     onSuccess: (data) => {
       StorageUtil.setSessionItem("logData", data);
-      // refetchUser();
+      refetchUser();
       router.push("/");
     },
-    onError: (error: AxiosError) => {
-      console.log("From Login Error: ", error);
+    onError: (error: any) => {
+      console.error("From Login Error: ", error);
+
+      // Try to extract backend message
+      const backendMessage =
+        error?.response?.data?.message || // axios-like response
+        error?.message || // generic error
+        null;
+
+      if (backendMessage) {
+        showToast("error", backendMessage);
+      } else {
+        // fallback for network / unknown errors
+        showToast("error", "Unable to connect. Please try again later.");
+      }
     },
   });
 
-  const handleBack = () => {
-    flipBack(false);
-  };
+  // const handleBack = () => {
+  //   flipBack(false);
+  // };
 
   return (
     <>
-      <div className="p-6">
-        <h1 className="text-xl font-semibold mb-4">Sign In</h1>
-        <p className="text-sm text-gray-500 mb-2">Login with your correct credentials</p>
+      <Toastbar open={toast.open} message={toast.message} severity={toast.severity} onClose={handleCloseToast} />
+      <div className="px-6">
+        <h1 className="text-lg text-center text-gray-800 mb-1 font-bold">Sign In</h1>
+        <p className="text-[#8D8D8D] text-sm text-center mb-10">Sign in with your correct credentials</p>
 
         <Formik
           initialValues={LoginInitialValues}
@@ -54,28 +91,26 @@ const Signin = ({ flipBack }: BackProps) => {
               <div className="space-y-2">
                 <Input
                   name="email"
-                  label="Email"
                   type="email"
                   value={formik.values.email}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   // touched={formik.touched.email}
                   // error={formik.errors.email}
-                  placeholder="Enter your email"
+                  placeholder="Email"
                 />
               </div>
 
               <div className="mt-[10px]">
                 <Input
                   name="password"
-                  label="password"
                   type="password"
                   value={formik.values.password}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   // touched={formik.touched.password}
                   // error={formik.errors.password}
-                  placeholder="Enter your password"
+                  placeholder="Password"
                 />
               </div>
 
@@ -87,12 +122,12 @@ const Signin = ({ flipBack }: BackProps) => {
                 >
                   {isPending ? "Validating..." : "Signin"}
                 </Button>
-                <p
+                {/* <p
                   className="text-gray-500 font-thin text-sm mt-2 cursor-pointer hover:text-green-500 hover:underline"
                   onClick={handleBack}
                 >
                   back
-                </p>
+                </p> */}
               </div>
             </Form>
           )}

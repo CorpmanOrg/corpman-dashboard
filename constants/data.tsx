@@ -1,5 +1,5 @@
 import { SideMenuModules, SubChildren } from "@/types/types";
-import { Home, Users, DollarSign, FileText, Settings, LogOut, CreditCard, EarthLock } from "lucide-react";
+import { Home, Users, DollarSign, FileText, Settings, CreditCard, EarthLock } from "lucide-react";
 
 export const SidebarMenuInit: SideMenuModules[] = [
   {
@@ -28,8 +28,10 @@ export const SidebarMenuInit: SideMenuModules[] = [
     icon: <DollarSign />,
     key: "financials",
     children: [
-      { label: "Contributions", chref: "/admin/financials/contributions", key: "contributions" },
+      { label: "Payments", chref: "/admin/financials/contributions", key: "payments" },
       { label: "Withdrawals", chref: "/admin/financials/withdrawals", key: "withdrawals" },
+      { label: "Approved Payments", chref: "/admin/financials/approvedPayments", key: "approvedPayments" },
+      { label: "Rejected Payments", chref: "/admin/financials/rejectedPayments", key: "rejectedPayments" },
       { label: "Transactions", chref: "/admin/financials/transactions", key: "transactions" },
       { label: "Loans", chref: "/admin/financials/loans", key: "loans" },
       { label: "Investments", chref: "/admin/financials/investments", key: "investments" },
@@ -48,6 +50,7 @@ export const SidebarMenuInit: SideMenuModules[] = [
       { label: "Minutes of Meetings", chref: "/admin/records/minutesOfMeeting", key: "minutes" },
       { label: "My Reports", chref: "/admin/records/myReports", key: "myReports" },
       { label: "Profile", chref: "/admin/records/profile", key: "profile" },
+      { label: "History", chref: "/admin/records/history", key: "history" },
     ],
   },
   {
@@ -63,13 +66,7 @@ export const SidebarMenuInit: SideMenuModules[] = [
     href: "/admin/auditLogs",
     icon: <EarthLock />,
     key: "audit",
-  },
-  {
-    type: "item",
-    label: "Logout",
-    icon: <LogOut />,
-    key: "logout",
-  },
+  }
 ];
 
 export const MainStatCard = [

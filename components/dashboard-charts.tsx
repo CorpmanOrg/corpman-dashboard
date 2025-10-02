@@ -58,7 +58,7 @@ const breakdownData = [
 ];
 
 const PIE_DATA = [
-  { name: "Date", value: "08/28/2025" },
+  { name: "Rejected", value: "08/28/2025" },
   { name: "Total Joined", value: 15 },
   { name: "Active", value: 2 },
   { name: "Pending", value: 4 },
@@ -232,12 +232,12 @@ export function ActivityMiniChart() {
 
 export function ActivityPieMiniChart() {
   const pieData = [
-    { name: "Date", value: 40 },
     { name: "Active", value: 30 },
     { name: "Pending", value: 30 },
+    { name: "Rejected", value: 40 },
   ];
 
-  const COLORS = ["#22c55e", "#065f46", "#4ade80"];
+  const COLORS = ["#bdecceff", "#f8e8a8ff", "#fcb6b6ff"];
   const total = pieData.reduce((acc, cur) => acc + cur.value, 0);
   const percent = Math.round((pieData[1].value / total) * 100);
 

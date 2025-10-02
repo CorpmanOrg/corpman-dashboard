@@ -1,53 +1,94 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
-import { Dummy_Memebers_Column, dummyMembers } from "@/components/assets/data";
-import { Member, TError, ToastSeverity, ToastState, TableActionOption } from "@/types/types";
-import { getAllMembersFn, approveOrRejectMembersFn } from "@/utils/ApiFactory/member";
-import { StatCardOpposite } from "@/components/Statistics/StatCard";
+import { MemberPaymentsData } from "@/components/assets/data";
+import {
+  TError,
+  ToastSeverity,
+  ToastState,
+  TableActionOption,
+  PaymentDataProps,
+  MemberPaymentsResponse,
+} from "@/types/types";
+import { getPaymentsByStatusFn, approveOrRejectPaymentsFn } from "@/utils/ApiFactory/admin";
+import { PaymentStatusFilter } from "@/types/types";
+import { useSearchParams, useRouter } from "next/navigation";
+import { MainStatisticsCard } from "@/components/Statistics/MainStatisticsCard";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
+import RejectionModal from "@/components/Modals/RejectionModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 import Toastbar from "@/components/Toastbar";
 import BaseTable from "@/components/BaseTable";
-import { User, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ActivityPieMiniChart } from "@/components/dashboard-charts";
-import MemberContributionForm from "@/components/Contributions/MemberContributionForm";
-import { MemberContributionInitialValues } from "@/components/assets/data";
-import { MemberContributionSchema } from "@/utils/Yup/schema";
-import RecentActivities from "@/components/RecentActivities/RecentActivities";
+import { CreditCard, GitBranchPlus, PiggyBank } from "lucide-react";
 
-export type MemberWithActions = Member & { ActionButton: string };
+type PaymentRow = PaymentDataProps & { id: string; ActionButton: string; sn: number };
 
-export default function MembersPage() {
+// Simple direct embed viewer (avoids CORS issues by not using fetch)
+function ReceiptViewer({ path }: { path: string }) {
+  if (!path) return null;
+  const fullUrl = /^https?:\/\//i.test(path)
+    ? path
+    : `${(process.env.NEXT_PUBLIC_API_TEST_URL || "").replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+  const ext = fullUrl.split("?")[0].split(".").pop()?.toLowerCase();
+  const isPdf = ext === "pdf";
+  const isImage = /(png|jpe?g|gif|webp|svg)$/i.test(ext || "");
+  return (
+    <div className="mt-1 space-y-1">
+      {isPdf && <iframe src={fullUrl} className="w-full h-72 border rounded" title="Receipt PDF" />}
+      {isImage && !isPdf && <img src={fullUrl} alt="Receipt" className="max-h-72 rounded border" />}
+      {!isPdf && !isImage && (
+        <a href={fullUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-xs">
+          Open Receipt
+        </a>
+      )}
+      <div className="flex items-center gap-3">
+        <a
+          href={fullUrl}
+          download
+          className="inline-block text-[11px] text-emerald-600 hover:text-emerald-700 underline"
+        >
+          Download
+        </a>
+        <a
+          href={fullUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] text-slate-500 hover:text-slate-700 underline"
+        >
+          Open in Tab
+        </a>
+      </div>
+      <p className="text-[10px] text-gray-400 break-all">{fullUrl}</p>
+    </div>
+  );
+}
+
+export default function ContributionsPaymentsPage() {
   const { modal, openModal, closeModal } = useModal();
-  const { user } = useAuth();
-  const [page, setPage] = useState<number>(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const status: string = "";
+  const { selectedOrganization } = useAuth();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Add state for toggling the card
-  const [showContributionCard, setShowContributionCard] = useState(false);
-
-  type BarDataType = { name: string; value: number };
-  const BAR_DATA: BarDataType[] = [
-    { name: "Total Joined", value: 15 },
-    { name: "Active", value: 2 },
-    { name: "Pending", value: 4 },
+  const stats = [
+    { title: "Savings", value: selectedOrganization?.balances?.savings ?? 0, icon: <PiggyBank /> },
+    { title: "Contributions", value: selectedOrganization?.balances?.contribution ?? 0, icon: <GitBranchPlus /> },
+    { title: "Loans", value: selectedOrganization?.balances?.loanBalance ?? 0, icon: <CreditCard /> },
   ];
 
-  const COLORS = ["#22c55e", "#065f46", "#4ade80"];
+  // Status filter (pending | approved | rejected | all)
+  const initialStatus = (() => {
+    const qs = (searchParams?.get("status") || "").toLowerCase();
+    if (["pending", "approved", "rejected", "all"].includes(qs)) return qs as PaymentStatusFilter;
+    return "pending";
+  })();
+  const [statusFilter, setStatusFilter] = useState<PaymentStatusFilter>(initialStatus);
 
-  const memberActionOptions: TableActionOption[] = [
-    { key: "view", label: "View Details" },
-    // { key: "edit", label: "Edit" },
-    // { key: "delete", label: "Delete" },
-    { key: "approve", label: "Approve" },
-    { key: "reject", label: "Reject" },
-  ];
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [toast, setToast] = useState<ToastState>({
     open: false,
@@ -55,283 +96,382 @@ export default function MembersPage() {
     message: "",
   });
 
-  const showToast = (severity: ToastSeverity, message: string) => {
-    setToast({
-      open: true,
-      severity,
-      message,
-    });
-  };
+  const showToast = (severity: ToastSeverity, message: string) => setToast({ open: true, severity, message });
 
-  const handleCloseToast = () => {
-    setToast((prevS) => ({
-      ...prevS,
+  const handleCloseToast = () =>
+    setToast((t) => ({
+      ...t,
       open: false,
     }));
-  };
 
   const {
-    data: membersData,
-    isLoading: MemberLoading,
+    data: paymentsResp,
+    isLoading,
     isSuccess,
     isError,
     error,
-  } = useQuery({
-    queryKey: ["fetch-members-by-admin", user?.id, page, rowsPerPage, status],
+  } = useQuery<MemberPaymentsResponse>({
+    queryKey: ["payments", statusFilter, page, rowsPerPage],
     queryFn: () =>
-      getAllMembersFn({
-        orgId: user?.id!,
-        page,
-        limit: rowsPerPage,
-        status,
-      }),
-    enabled: !!user?.id,
+      getPaymentsByStatusFn({ status: statusFilter, page, limit: rowsPerPage }) as Promise<MemberPaymentsResponse>,
   });
 
-  function getPaginatedDummyData(page: number, rowsPerPage: number) {
-    const totalRecords = dummyMembers.length;
-    const totalPages = Math.ceil(totalRecords / rowsPerPage);
-    const startIdx = page * rowsPerPage;
-    const endIdx = startIdx + rowsPerPage;
-    const paginatedData = dummyMembers.slice(startIdx, endIdx);
+  const paymentRows: PaymentRow[] = (paymentsResp?.payments || []).map((p: any, idx: number) => ({
+    ...p,
+    id: p._id || String(idx),
+    sn: page * rowsPerPage + idx + 1,
+    ActionButton: "ActionButton",
+  }));
 
-    return {
-      currentPage: page + 1,
-      data: paginatedData,
-      nextPage: page + 1 < totalPages ? page + 2 : null,
-      totalPages,
-      totalRecords,
-    };
-  }
+  const totalCount = paymentsResp?.total ?? paymentRows.length;
 
-  const dummyApiResponse = getPaginatedDummyData(page, rowsPerPage);
-
-  const select = (data: any) => {
-    const transform = data?.data?.map((itm: any) => ({
-      ...itm,
-      action: "ActionButton",
-    }));
-    const totalCount = data?.totalRecords;
-    const pagesCount = data?.totalPages;
-    return { transform, totalCount, pagesCount };
+  const allowedActionsForRow = (row: PaymentRow): TableActionOption[] => {
+    const base: TableActionOption[] = [{ key: "view", label: "View Details" }];
+    if (row.status === "pending") {
+      base.push({ key: "approve", label: "Approve" }, { key: "reject", label: "Reject" });
+    }
+    return base;
   };
 
-  const { transform, totalCount, pagesCount } = select(dummyApiResponse);
+  const allActions: TableActionOption[] = [
+    { key: "view", label: "View Details" },
+    { key: "approve", label: "Approve" },
+    { key: "reject", label: "Reject" },
+  ];
 
+  // const mutation = useMutation({
+  //   mutationFn: approveOrRejectPaymentsFn,
+  //   // Optimistic update for current visible page
+  //   onMutate: async (vars: { id: string; action: string; rejectionReason?: string }) => {
+  //     await queryClient.cancelQueries({ queryKey: ["payments", statusFilter, page, rowsPerPage] });
+  //     const key = ["payments", statusFilter, page, rowsPerPage];
+  //     const previous = queryClient.getQueryData<MemberPaymentsResponse>(key as any);
+  //     if (previous) {
+  //       const updated = { ...previous } as MemberPaymentsResponse;
+  //       updated.payments = updated.payments.map((p: any) => {
+  //         if (p._id === vars.id || p.id === vars.id) {
+  //           if (vars.action === "approve") {
+  //             return { ...p, status: "approved" };
+  //           }
+  //           if (vars.action === "reject") {
+  //             return { ...p, status: "rejected" };
+  //           }
+  //         }
+  //         return p;
+  //       });
+  //       // If we are on pending list and approving/rejecting, we can optionally filter them out
+  //       if (statusFilter === "pending") {
+  //         updated.payments = updated.payments.filter((p: any) => p.status === "pending");
+  //         updated.total = updated.payments.length;
+  //       }
+  //       queryClient.setQueryData(key as any, updated);
+  //     }
+  //     return { previous }; // context for rollback
+  //   },
+  //   onError: (err: any, _vars, context: any) => {
+  //     if (context?.previous) {
+  //       queryClient.setQueryData(["payments", statusFilter, page, rowsPerPage], context.previous);
+  //     }
+  //     showToast("error", err?.message || "Failed to update payment");
+  //   },
+  //   onSuccess: () => {
+  //     showToast("success", "Payment updated successfully");
+  //     closeModal();
+  //   },
+  //   onSettled: async () => {
+  //     // Broad invalidate (predicate catches every variant of payments queries regardless of page/status)
+  //     await queryClient.invalidateQueries({
+  //       predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === "payments",
+  //     });
+  //     // Force immediate refetch to observe backend change even if data not considered stale yet
+  //     await queryClient.refetchQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === "payments" });
+  //   },
+  // });
   const mutation = useMutation({
-    mutationFn: approveOrRejectMembersFn,
-    onSuccess: (data) => {
-      showToast("success", data.message || "Action successful!");
-      // Optionally refetch members here
+    mutationFn: approveOrRejectPaymentsFn,
+
+    // 🔹 Optimistic update
+    onMutate: async (vars: { id: string; action: "approve" | "reject"; rejectionReason?: string }) => {
+      // Cancel any outgoing queries for payments so we don’t overwrite
+      await queryClient.cancelQueries({ queryKey: ["payments"] });
+
+      // Snapshot the previous value
+      const key = ["payments", statusFilter, page, rowsPerPage];
+      const previous = queryClient.getQueryData<MemberPaymentsResponse>(key);
+
+      if (previous) {
+        const updated: MemberPaymentsResponse = {
+          ...previous,
+          payments: previous.payments.map((p) => {
+            if (p._id === vars.id || (p as any).id === vars.id) {
+              return {
+                ...p,
+                status: vars.action === "approve" ? "approved" : "rejected",
+              };
+            }
+            return p;
+          }),
+          total: previous.total,
+        };
+
+        // If we’re in the "pending" tab, hide the row immediately
+        if (statusFilter === "pending") {
+          updated.payments = updated.payments.filter((p) => p.status === "pending");
+          updated.total = updated.payments.length;
+        }
+
+        queryClient.setQueryData(key, updated);
+      }
+
+      // Return context for rollback
+      return { previous };
     },
-    onError: (error: any) => {
-      showToast("error", error.message || "Action failed!");
+
+    // 🔹 Rollback on error
+    onError: (err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["payments", statusFilter, page, rowsPerPage], context.previous);
+      }
+      showToast("error", (err as Error).message || "Failed to update payment ❌");
+    },
+
+    // 🔹 Success feedback
+    onSuccess: () => {
+      showToast("success", "Payment updated successfully ✅");
+      closeModal();
+    },
+
+    // 🔹 Always refetch from server (ensures totals are correct)
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
   });
 
   useEffect(() => {
-    if (isSuccess) {
-      showToast("success", "Contributions fetched successfully ✅");
+    if (isSuccess) showToast("success", "Payments fetched ✅");
+  }, [isSuccess, statusFilter, page, rowsPerPage]);
+  // Sync statusFilter to URL when it changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString());
+    if (statusFilter === "pending") {
+      // remove to keep default clean
+      params.delete("status");
+    } else {
+      params.set("status", statusFilter);
     }
-  }, [isSuccess]);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [statusFilter]);
+
+  // When status changes reset to first page
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter]);
+
+  const STATUS_OPTIONS: PaymentStatusFilter[] = ["pending", "approved", "rejected", "all"];
+
+  const renderStatusFilter = () => (
+    <div className="flex flex-wrap gap-2 items-center">
+      {STATUS_OPTIONS.map((opt) => {
+        const active = statusFilter === opt;
+        const disabled = opt === "all" && statusFilter !== "all" && false; // keep logic placeholder if need disabling
+        return (
+          <button
+            key={opt}
+            type="button"
+            disabled={disabled || isLoading}
+            onClick={() => setStatusFilter(opt)}
+            className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors
+              ${
+                active
+                  ? "bg-emerald-600 text-white border-emerald-600"
+                  : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              }`}
+            aria-pressed={active}
+          >
+            {opt.charAt(0).toUpperCase() + opt.slice(1)}
+          </button>
+        );
+      })}
+    </div>
+  );
 
   useEffect(() => {
     if (isError && error) {
       showToast(
         "error",
-        (error as unknown as TError)?.message || (error as Error).message || "Failed to fetch members ❌"
+        (error as unknown as TError)?.message || (error as Error).message || "Failed to fetch payments ❌"
       );
     }
   }, [isError, error]);
 
-  const handleActionClick = (action: TableActionOption, columnId: string, row: MemberWithActions) => {
-    switch (action.key) {
-      case "view":
-        openModal("details", {
-          title: "Member Details",
-          content: (
-            <div>
+  const handleActionClick = (action: TableActionOption, _columnId: string, row: PaymentRow) => {
+    if (!allowedActionsForRow(row).some((a) => a.key === action.key)) return;
+    if (action.key === "view") {
+      const formattedType = (() => {
+        const raw = String(row.type || "").toLowerCase();
+        const parts = raw.split(/[\-_]/).filter(Boolean);
+        if (!parts.length) return row.type;
+        const categoryRaw = parts[0];
+        const actionRaw = parts.slice(1).join(" ");
+        const categoryMap: Record<string, string> = {
+          savings: "Savings",
+          saving: "Savings",
+          contribution: "Contributions",
+          contributions: "Contributions",
+          loan: "Loan",
+          investment: "Investment",
+          pension: "Pension",
+          general: "General",
+        };
+        const actionMap: Record<string, string> = {
+          deposit: "Deposit",
+          withdrawal: "Withdrawal",
+          withdraw: "Withdrawal",
+          repayment: "Repayment",
+          disbursement: "Disbursement",
+          payment: "Payment",
+          transfer: "Transfer",
+        };
+        const cat = categoryMap[categoryRaw] || categoryRaw.charAt(0).toUpperCase() + categoryRaw.slice(1);
+        const mappedAction = actionRaw
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((t) => actionMap[t] || t.charAt(0).toUpperCase() + t.slice(1))
+          .join(" ")
+          .trim();
+        return mappedAction ? `${cat} (${mappedAction})` : cat;
+      })();
+      openModal("details", {
+        title: "Payment Details",
+        content: (
+          <div className="space-y-2 text-sm">
+            <p>
+              <strong>Member:</strong> {row.memberId?.firstName} {row.memberId?.surname}
+            </p>
+            <p>
+              <strong>Amount:</strong> {row.amount}
+            </p>
+            <p>
+              <strong>Type:</strong> {formattedType}
+            </p>
+            <p>
+              <strong>Status:</strong>{" "}
+              <span
+                className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
+                  row.status === "pending"
+                    ? "bg-amber-100 text-amber-700"
+                    : row.status === "active"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : row.status === "rejected"
+                    ? "bg-rose-100 text-rose-700"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {row.status}
+              </span>
+            </p>
+            {row.description && (
               <p>
-                <strong>Name:</strong> {row.firstName} {row.surname}
+                <strong>Description:</strong> {row.description}
               </p>
-              <p>
-                <strong>Email:</strong> {row.email}
-              </p>
-              {/* Add more fields as needed */}
-            </div>
-          ),
-        });
-        break;
-      case "edit":
-        openModal("form", { member: row });
-        break;
-      case "delete":
-        openModal("confirm", {
-          message: `Are you sure you want to delete ${row.firstName} ${row.surname}?`,
-          onConfirm: () => {
-            // Call your delete API here
-            closeModal();
-          },
-        });
-        break;
-      case "approve":
-        openModal("confirm", {
-          message: `Approve member ${row.firstName} ${row.surname}?`,
-          onConfirm: () => {
-            // console.log("Approving member:", row);
-            mutation.mutate({
-              updates: [{ memberId: row._id, status: "active" }],
-            });
-            closeModal();
-          },
-        });
-        break;
-      case "reject":
-        openModal("confirm", {
-          message: `Reject member ${row.firstName} ${row.surname}?`,
-          onConfirm: () => {
-            mutation.mutate({
-              updates: [{ memberId: row._id, status: "rejected" }],
-            });
-            closeModal();
-          },
-        });
-        break;
-      default:
-        break;
+            )}
+            <p>
+              <strong>Created:</strong> {new Date(row.createdAt).toLocaleString()}
+            </p>
+            <p>
+              <strong>Updated:</strong> {new Date(row.updatedAt).toLocaleString()}
+            </p>
+            {row.paymentReceipt && (
+              <div>
+                <strong>Receipt:</strong>
+                <ReceiptViewer path={row.paymentReceipt} />
+              </div>
+            )}
+          </div>
+        ),
+      });
+    }
+    if (action.key === "approve") {
+      openModal("confirm", {
+        message: `Are you sure you want to approve payment of ₦${row.amount}?`,
+        onConfirm: () =>
+          mutation.mutate({
+            id: row.id,
+            action: "approve",
+          }),
+      });
+    }
+
+    if (action.key === "reject") {
+      openModal("reject", {
+        message: `Please provide a reason for rejecting ₦${row.amount}`,
+        onReject: (reason: string) =>
+          mutation.mutate({
+            id: row.id,
+            action: "reject",
+            rejectionReason: reason,
+          }),
+      });
     }
   };
 
-  const myData: MemberWithActions[] =
-    membersData?.members?.map((m, idx) => ({ ...m, id: m._id ?? idx, ActionButton: "ActionButton" })) || [];
+  const isMutating = mutation.status === "pending";
 
-  const last5Members = useMemo<Member[]>(() => {
-    // if (!membersData?.members) return [];
-    if (!dummyMembers) return [];
-
-    // return [...membersData.members]
-    return [...dummyMembers]
-      .sort((a, b) => {
-        const dateA = a.joinedAt ? new Date(a.joinedAt).getTime() : 0;
-        const dateB = b.joinedAt ? new Date(b.joinedAt).getTime() : 0;
-        return dateA - dateB;
-      })
-      .slice(-4);
-  }, [membersData]);
-
-  console.log("From Mebers-Dummy-Reset: ", { transform, totalCount, pagesCount });
+  console.log("Statistics Data:", { stats, selectedOrganization });
 
   return (
-    <div className="px-6 space-y-8">
-      {/* 🔹 Top Section: Cards */}
+    <div className="space-y-8">
       <Toastbar open={toast.open} message={toast.message} severity={toast.severity} onClose={handleCloseToast} />
+
       <ConfirmModal
         open={modal.type === "confirm"}
         onClose={closeModal}
         onConfirm={modal.data?.onConfirm}
         message={modal.data?.message || ""}
+        loading={isMutating} // Only if your ConfirmModal supports this prop
+      />
+
+      <RejectionModal
+        open={modal.type === "reject"}
+        onClose={closeModal}
+        onReject={modal.data?.onReject}
+        message={modal.data?.message || ""}
+        loading={isMutating}
       />
 
       <DetailsModal open={modal.type === "details"} onClose={closeModal} title={modal.data?.title}>
         {modal.data?.content}
       </DetailsModal>
-      {user?.role === "admin" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {last5Members.map((member, idx) => (
-            <StatCardOpposite
-              key={idx}
-              title={`${member.firstName} ${member.surname}` || "Yazid"}
-              value={member.mobileNumber || "N/A"}
-              icon={member.image || <User className="h-5 w-5" />}
-            />
-          ))}
-          {/* Activity Bar Chart Card */}
-          <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow dark:shadow-green-900/10">
-            <div className="text-white p-4 h-full flex flex-col justify-between">
-              <div className="h-[100px]">
-                <ActivityPieMiniChart />
-              </div>
-            </div>
-          </Card>
+
+      <MainStatisticsCard stats={stats} showActivityCard={false} />
+
+      <div className="px-6">{renderStatusFilter()}</div>
+
+      {isLoading && (
+        <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">Loading payments...</div>
+      )}
+
+      {!isLoading && !paymentRows.length && (
+        <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+          {statusFilter === "all" ? "No payments found." : `No ${statusFilter} payments found.`}
         </div>
       )}
 
-      {user?.role === "member" && (
-        <>
-          {/* Trigger Button aligned right */}
-          <div className="mb-4 flex justify-end">
-            <button
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-              onClick={() => setShowContributionCard(true)}
-              style={{ display: showContributionCard ? "none" : "inline-block" }}
-            >
-              Manage Contributions
-            </button>
-          </div>
-          {showContributionCard && (
-            <Card className="shadow-md bg-white hover:shadow-lg transition-shadow border-t-4 border-t-[#19d21f] dark:shadow-green-900/10 dark:bg-gray-900 dark:border-t-green-600 relative">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 bg-[#f9fdf9] dark:bg-gray-900/50">
-                <CardTitle className="text-lg font-bold text-[#0e4430] dark:text-green-400">Contributions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col lg:flex-row gap-6">
-                  <div>
-                    <MemberContributionForm
-                      moduleType="contribution"
-                      initialValues={MemberContributionInitialValues}
-                      validationSchema={MemberContributionSchema}
-                      onSubmit={(payload) => {
-                        // handle form submission here
-                        console.log("Submitted payload:", payload);
-                      }}
-                    />
-                  </div>
-                  <div className="pt-8 flex-1">
-                    <h3 className="font-bold mb-4 text-black dark:text-green-400">Recent Transactions</h3>
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((item) => (
-                        <div
-                          key={item}
-                          className="flex items-start p-3 rounded-lg bg-[#f9fdf9] dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
-                        >
-                          <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full mr-3">
-                            <Users className="h-5 w-5 text-[#19d21f] dark:text-green-400" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium dark:text-gray-200">New member registered</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                {/* Close Button at the bottom */}
-                <div className="flex justify-end mt-8">
-                  <button
-                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-                    onClick={() => setShowContributionCard(false)}
-                  >
-                    Close ✕
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </>
+      {!isLoading && !!paymentRows.length && (
+        <div className="px-6">
+          <BaseTable<PaymentRow>
+            rows={paymentRows}
+            columns={MemberPaymentsData}
+            page={page}
+            setPage={setPage}
+            rowsPerPage={rowsPerPage}
+            setRowsPerPage={setRowsPerPage}
+            totalPage={totalCount}
+            actionOptions={allActions}
+            actionItemOnClick={handleActionClick}
+          />
+        </div>
       )}
-      <BaseTable<MemberWithActions>
-        // rows={myData || []}
-        rows={transform || []}
-        columns={Dummy_Memebers_Column}
-        page={page}
-        setPage={setPage}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-        totalPage={totalCount ?? 0}
-        actionOptions={memberActionOptions}
-        actionItemOnClick={handleActionClick}
-      />
     </div>
   );
 }

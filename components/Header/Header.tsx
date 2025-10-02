@@ -5,9 +5,14 @@ import { Button } from "../ui/button";
 import { ThemeToggle } from "../theme-toggle";
 import { useAuth } from "@/context/AuthContext";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
+import { logUserOut } from "@/utils/logout/logout";
 
 export function Header() {
-  const { user, setRole } = useAuth();
+  const { user, selectedOrgId, setSelectedOrgId } = useAuth();
+  const myOrgs = user && user.user.organizations;
+  const organizationName = user && myOrgs?.length === 1 ? myOrgs[0].organizationName : "Select organization";
+  // console.log("User's Organizations: ", { myOrgs, organizationName });
+  // console.log("Header User Data: ", { user });
 
   return (
     <div>
@@ -15,7 +20,7 @@ export function Header() {
         {/* Left Section */}
         <div>
           <h2 className="text-lg font-medium text-[#0e4430] dark:text-green-400">
-            {`Welcome back, ${user?.name || "user"}`}
+            {`Welcome back, ${user?.user?.firstName || "user"}`}
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Here's what's happening with your cooperative today.
@@ -33,15 +38,19 @@ export function Header() {
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </Button>
-          <Select value={user?.role} onValueChange={(value) => setRole(value as "superAdmin" | "admin" | "member")}>
-            <SelectTrigger className="w-[140px] text-[#0e4430] dark:text-green-400">
-              <User className="h-5 w-5 mr-2 inline" />
-              <SelectValue placeholder="Select role" />
+          <Select value={selectedOrgId || ""} onValueChange={setSelectedOrgId}>
+            <SelectTrigger className="w-[200px] text-[#0e4430] dark:text-green-400">
+              <SelectValue placeholder={organizationName || "Select Your Organization"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="superAdmin">Super Admin</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="member">Member</SelectItem>
+              {user?.user?.organizations?.map((org, idx) => (
+                <SelectItem key={idx} value={org.organizationName}>
+                  {org.organizationName} {/* Replace with org name if available */}
+                </SelectItem>
+              ))}
+              <div className="px-4 py-2 text-sm text-red-600 cursor-pointer" onClick={logUserOut}>
+                Logout
+              </div>
             </SelectContent>
           </Select>
         </div>

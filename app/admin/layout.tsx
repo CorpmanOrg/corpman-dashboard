@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
 
-  console.log("AppLayout mounted");
+  // console.log("AppLayout mounted");
 
   return (
     <TooltipProvider>

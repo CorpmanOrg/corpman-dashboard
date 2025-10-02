@@ -7,9 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ChevronDown, Menu } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-// import { logoutFn } from "@/utils/ApiFactory/auth";
 import { SidebarMenuInit } from "@/constants/data";
-import { logUserOut } from "@/utils/logout/logout";
 
 type Category = "people" | "financials" | "records";
 
@@ -38,7 +36,7 @@ interface SidebarItemProps {
   href: string;
   isCollapsed: boolean;
   isActive?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   children?: ReactNode;
 }
 
@@ -133,7 +131,7 @@ export function SideNav() {
   const [activeItem, setActiveItem] = useState("dashboard");
   const [expandedCategories, setExpandedCategories] = useState(["people"]);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, currentRole } = useAuth();
 
   // Deep clone utility for menu
   function deepCloneMenu(menu: typeof SidebarMenuInit): typeof SidebarMenuInit {
@@ -157,7 +155,7 @@ export function SideNav() {
       }
       if (item.key === "financials") {
         item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["contributions", "withdrawals", "loans", "investments", "welfare"].includes(c.key)
+          ["payments", "approvedPayments", "rejectedPayments", "investments", "welfare"].includes(c.key)
         );
         return true;
       }
@@ -182,7 +180,7 @@ export function SideNav() {
       }
       if (item.key === "records") {
         item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["minutes", "myReports", "profile"].includes(c.key)
+          ["minutes", "myReports", "profile", "history"].includes(c.key)
         );
         return true;
       }
@@ -190,7 +188,7 @@ export function SideNav() {
     return false;
   });
 
-  const menuToRender = user?.role === "admin" ? adminMenu : memberMenu;
+  const menuToRender = currentRole === "org_admin" ? adminMenu : memberMenu;
 
   const toggleCategory = (category: Category) => {
     setExpandedCategories((prevS) =>
@@ -235,10 +233,6 @@ export function SideNav() {
                     href={sideMenu.href}
                     isCollapsed={isSidebarCollapsed}
                     isActive={activeItem === sideMenu.key}
-                    onClick={() => {
-                      if (sideMenu.key === "logout") logUserOut();
-                      else setActiveItem(sideMenu.key);
-                    }}
                   />
                 );
               }

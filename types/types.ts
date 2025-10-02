@@ -38,6 +38,47 @@ export interface SideMenuModules {
   children?: SubChildren[];
 }
 
+export interface LoggedUser {
+  _id: string;
+  email: string;
+  surname: string;
+  firstName: string;
+  middleName?: string;
+  address?: string;
+  dateOfBirth?: string;
+  stateOfOrigin?: string;
+  LGA?: string;
+  maritalStatus?: string;
+  residentialAddress?: string;
+  mobileNumber?: string;
+  employer?: string;
+  annualIncome?: number;
+  monthlyContribution?: number;
+  nextOfKin?: string;
+  nextOfKinRelationship?: string;
+  nextOfKinAddress?: string;
+  organizations?: Array<{
+    organizationId: string;
+    organizationName: string;
+    status: string;
+    role: string;
+    balances: {
+      savings: number;
+      contribution: number;
+      loanBalance: number;
+    };
+  }>;
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
+}
+
+export type UserData = {
+  message: string;
+  token: string;
+  user: LoggedUser;
+};
+
 export type Member = {
   id: string;
   _id: string;
@@ -46,7 +87,8 @@ export type Member = {
   name?: string;
   uniqueId?: string;
   contact?: string;
-  status?: string;
+  status?: "active" | "rejected" | "pending" | "inactive";
+  role?: "member" | "org_admin";
   address?: string;
   joinedAt?: string;
   image?: string;
@@ -116,11 +158,17 @@ export type ApproveRejectPayload = {
   updates: MemberStatusUpdate[];
 };
 
-export type ApproveRejectResponse = {
-  success: boolean;
+export interface ApproveRejectResponse {
   message: string;
-  updatedMembers?: Member[];
-};
+  summary: {
+    updated: string[];
+    alreadyUpdated: string[];
+    notFound: string[];
+    noRequestToOrg: string[];
+    invalidStatus: string[];
+    errors: string[];
+  };
+}
 
 export type Statement = {
   id: string;
@@ -152,4 +200,75 @@ export type TopUserReport = {
   amount: number;
   category: string;
   date: string; // <-- Add this line
+};
+
+export type deposit = { amount: string; type: string; description: string; payment_receipt: null | File };
+export type withdrawal = { amount: string; type: string; description: string };
+
+export type MakePaymentRes = {
+  message: string;
+  paymentId: string;
+  amount: number;
+  type: string;
+  status: string;
+};
+
+// Payment status filter values (includes 'all' for future backend support)
+export type PaymentStatusFilter = "pending" | "approved" | "rejected" | "all";
+
+export type ErrorResponse = {
+  message?: string;
+  success?: boolean;
+};
+
+export interface MemberIdProps {
+  _id: string;
+  email: string;
+  surname: string;
+  firstName: string;
+}
+
+export interface PaymentDataProps {
+  id: string;
+  _id: string;
+  memberId: MemberIdProps;
+  organizationId: string;
+  amount: number;
+  type: string; // extend as needed
+  status: string; // extend as needed
+  paymentReceipt: string;
+  description: string;
+  expectedProcessingDays: number | null;
+  createdAt: string; // could be Date if you parse it
+  updatedAt: string;
+  __v: number;
+}
+
+export interface MemberPaymentsResponse {
+  payments: PaymentDataProps[];
+  totalPages: number;
+  currentPage: number;
+  total: number;
+}
+
+export type PaymentApproveRejectResponse = {
+  message?: string;
+  success?: boolean;
+};
+
+export type paymentApproveOrRejectType = {
+  paymentId: string; // target payment identifier
+  action: "approve" | "reject";
+  rejectionReason?: string; // required when action = reject
+};
+
+export type AssignRoleType = {
+  userId: string;
+  organizationId: string;
+  role: "member" | "org_admin";
+};
+
+export type SettingsType = {
+  savingsMaxDays: number;
+  contributionMaxDays: number;
 };

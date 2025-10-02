@@ -6,9 +6,10 @@ interface BaseModalProps {
   children: React.ReactNode;
   title?: string;
   width?: number | string;
+  height?: number | string;
 }
 
-const BaseModal: React.FC<BaseModalProps> = ({ open, onClose, children, title, width = 400 }) => {
+const BaseModal: React.FC<BaseModalProps> = ({ open, onClose, children, title, width = "50%", height = "50%" }) => {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

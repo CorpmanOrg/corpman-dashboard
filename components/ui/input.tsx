@@ -15,10 +15,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,
+      id,
       appendIcon,
       containerClassName = "",
       inputClassName = "",
       className,
+      disabled = false,
       type = "text",
       formik,
       name,
@@ -39,10 +41,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
         <div className="relative bg-white rounded-[5px] flex items-center">
           <input
+            id={id}
+            name={name}
             ref={ref}
             type={type}
-            name={name}
             value={value}
+            disabled={disabled}
             onChange={formik ? formik.handleChange : props.onChange}
             onBlur={formik ? formik.handleBlur : props.onBlur}
             className={cn(

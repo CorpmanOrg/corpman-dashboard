@@ -18,7 +18,7 @@ export default function EmailVerifyClient() {
       });
     },
     onError: (error: any) => {
-      console.log("From error: ", error);
+      // console.log("From error: ", error);
     },
   });
 

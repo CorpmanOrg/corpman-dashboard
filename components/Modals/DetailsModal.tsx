@@ -6,10 +6,12 @@ interface DetailsModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  width?: number | string
+  height?: number | string
 }
 
-const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, title, children }) => (
-  <BaseModal open={open} onClose={onClose} title={title}>
+const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, title, children, width, height }) => (
+  <BaseModal open={open} onClose={onClose} title={title} width={width} height={height}>
     {children}
   </BaseModal>
 );

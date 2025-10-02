@@ -6,7 +6,6 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import TableRow from "@mui/material/TableRow";
@@ -36,7 +35,7 @@ export interface BaseTableProps<T> {
   isLoading?: boolean;
 
   // optional features
-  actionOptions?: TableActionOption[];
+  actionOptions?: TableActionOption[] | ((row: T) => TableActionOption[]);
   actionItemOnClick?: (option: TableActionOption, columnId: string, row: T) => void;
   skeletonVariant?: "rectangular" | "text" | "circular";
   showDownload?: boolean;
@@ -229,7 +228,11 @@ function BaseTable<T extends { id?: string | number }>({
                       >
                         {column.id === "ActionButton" ? (
                           <TableMoreDetails
-                            options={actionOptions || []}
+                            options={
+                              typeof actionOptions === "function"
+                                ? actionOptions(row) // ✅ per-row actions
+                                : actionOptions || []
+                            }
                             itemOnClick={(itm) => actionItemOnClick?.(itm, String(column.id), row)}
                           />
                         ) : column.format ? (
@@ -248,44 +251,6 @@ function BaseTable<T extends { id?: string | number }>({
         </Table>
       </TableContainer>
 
-      {/* {rows.length > 0 && (
-        <TablePagination
-          component="div"
-          page={page}
-          rowsPerPage={rowsPerPage}
-          count={totalPage}
-          rowsPerPageOptions={[10, 50, 100]}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handleRowsPerPageChange}
-          sx={{
-            fontFamily: montserrat.style.fontFamily,
-            background: "#ffffff1b",
-            color: "#bb1c1cff",
-            ".MuiTablePagination-toolbar": {
-              color: "#374151",
-            },
-            ".MuiTablePagination-selectLabel, .MuiTablePagination-input, .MuiTablePagination-displayedRows": {
-              color: "#374151",
-            },
-            ".MuiSvgIcon-root": {
-              color: "#374151",
-            },
-            ".dark &": {
-              background: "#071121ff",
-              color: "#dddadaa1",
-              ".MuiTablePagination-toolbar": {
-                color: "#dddadaa1",
-              },
-              ".MuiTablePagination-selectLabel, .MuiTablePagination-input, .MuiTablePagination-displayedRows": {
-                color: "#dddadaa1",
-              },
-              ".MuiSvgIcon-root": {
-                color: "#dddadaa1",
-              },
-            },
-          }}
-        />
-      )} */}
       {rows.length > 0 && (
         <Stack
           direction="row"

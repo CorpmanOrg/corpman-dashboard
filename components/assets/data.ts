@@ -1,12 +1,12 @@
 import {
   SignUpFormValues,
   LoginFormValues,
-  Member,
-  MembersApiResponse,
-  Statement,
   ReportSummary,
   ReportTrend,
   TopUserReport,
+  deposit,
+  withdrawal,
+  PaymentDataProps,
 } from "@/types/types";
 import { Home, Users, DollarSign, FileText, Settings, LogOut } from "lucide-react";
 import {} from "@/types/types";
@@ -14,6 +14,7 @@ import {} from "@/types/types";
 import { MemberWithActions } from "@/app/admin/peopleManagement/members/page";
 import { Column } from "@/types/types";
 import { StatementWithActions } from "@/app/admin/records/statement/page";
+import React from "react";
 
 export const SignUpInitialValues: SignUpFormValues = {
   name: "",
@@ -29,296 +30,208 @@ export const LoginInitialValues: LoginFormValues = {
   password: "",
 };
 
-export const dummyMembers: MemberWithActions[] = [
+export const Dummy_Memebers_Column: Column<MemberWithActions & { sn: number }>[] = [
   {
-    id: "101",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
+    id: "sn",
+    label: "S/N",
+    minWidth: 60,
+    // we already computed sn in the row object, so use it directly
+    format: (_v, row) => row.sn,
   },
-  {
-    id: "102",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "103",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "104",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
-  },
-  {
-    id: "105",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "106",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "107",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
-  },
-  {
-    id: "108",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "109",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "110",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
-  },
-  {
-    id: "111",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "112",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "113",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
-  },
-  {
-    id: "114",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "115",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "116",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
-  },
-  {
-    id: "117",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "118",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "119",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
-  },
-  {
-    id: "120",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "121",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "122",
-    _id: "1",
-    firstName: "John",
-    middleName: "Felix",
-    surname: "Doe",
-    email: "John@doe.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton", // no image → placeholder
-  },
-  {
-    id: "123",
-    _id: "2",
-    firstName: "Smith",
-    middleName: "UID-002",
-    surname: "Rachael",
-    email: "smith4@rachael.com",
-    status: "Inactive",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-  {
-    id: "124",
-    _id: "3",
-    firstName: "Michael",
-    middleName: "Spurs",
-    surname: "Johnson",
-    email: "mike@spirs.com",
-    status: "Active",
-    role: "member",
-    ActionButton: "ActionButton",
-  },
-];
-
-export const Dummy_Memebers_Column: Column<MemberWithActions>[] = [
-  { id: "id", label: "ID", minWidth: 80 },
   { id: "firstName", label: "First Name", minWidth: 140 },
   { id: "middleName", label: "Middle Name", minWidth: 140 },
   { id: "surname", label: "Surname", minWidth: 120 },
   { id: "email", label: "Email", minWidth: 180 },
-  // { id: "mobileNumber", label: "Mobile Number", minWidth: 140 },
-  // { id: "address", label: "Address", minWidth: 160 },
-  // { id: "residentialAddress", label: "Residential Address", minWidth: 180 },
-  // { id: "stateOfOrigin", label: "State of Origin", minWidth: 140 },
-  // { id: "LGA", label: "LGA", minWidth: 100 },
-  // { id: "maritalStatus", label: "Marital Status", minWidth: 140 },
-  // { id: "employer", label: "Employer", minWidth: 140 },
-  // { id: "annualIncome", label: "Annual Income", minWidth: 140 },
-  // { id: "monthlyContribution", label: "Monthly Contribution", minWidth: 180 },
-  // { id: "nextOfKin", label: "Next of Kin", minWidth: 140 },
-  // { id: "nextOfKinRelationship", label: "Next of Kin Relationship", minWidth: 180 },
-  // { id: "nextOfKinAddress", label: "Next of Kin Address", minWidth: 180 },
-  // { id: "dateOfBirth", label: "Date of Birth", minWidth: 140 },
-  // { id: "createdAt", label: "Date Created", minWidth: 140 },
-  // { id: "updatedAt", label: "Last Updated", minWidth: 140 },
-  { id: "status", label: "Status", minWidth: 100 },
-  { id: "role", label: "Role", minWidth: 100 },
+  {
+    id: "status",
+    label: "Status",
+    minWidth: 120,
+    format: (v) => {
+      const getStatusStyles = (status: string) => {
+        const baseClasses = "inline-block px-4 py-1 rounded-xl font-semibold text-[0.95rem] border";
+
+        switch (status) {
+          case "active":
+            return `${baseClasses} bg-[#e6f9ed] text-[#166534] border-[#b6f2d7] dark:bg-green-900/40 dark:text-green-200 dark:border-green-700`;
+          case "pending":
+            return `${baseClasses} bg-[#fef3c7] text-[#92400e] border-[#fde68a] dark:bg-yellow-900/40 dark:text-yellow-200 dark:border-yellow-700`;
+          case "rejected":
+            return `${baseClasses} bg-[#fdeaea] text-[#991b1b] border-[#f5c2c7] dark:bg-red-900/40 dark:text-red-200 dark:border-red-700`;
+          case "inactive":
+            return `${baseClasses} bg-[#f3f4f6] text-[#374151] border-[#d1d5db] dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600`;
+          default:
+            return `${baseClasses} bg-[#f3f4f6] text-[#374151] border-[#d1d5db] dark:bg-gray-900/40 dark:text-gray-300 dark:border-gray-600`;
+        }
+      };
+
+      const getStatusLabel = (status: string) => {
+        switch (status) {
+          case "active":
+            return "Active";
+          case "pending":
+            return "Pending";
+          case "rejected":
+            return "Rejected";
+          case "inactive":
+            return "Inactive";
+          default:
+            return status || "Unknown";
+        }
+      };
+
+      return React.createElement("span", { className: getStatusStyles(v) }, getStatusLabel(v));
+    },
+  },
+  {
+    id: "role",
+    label: "Role",
+    minWidth: 120,
+    format: (v) => {
+      const getRoleStyles = (role: string) => {
+        const baseClasses = "font-semibold text-[0.95rem]";
+
+        switch (role) {
+          case "org_admin":
+            return `${baseClasses} text-[#ec4899] dark:text-pink-300`;
+          case "member":
+            return `${baseClasses} text-[#ea580c] dark:text-orange-300`;
+          default:
+            return `${baseClasses} text-[#374151] dark:text-gray-300`;
+        }
+      };
+
+      const getRoleLabel = (role: string) => {
+        switch (role) {
+          case "org_admin":
+            return "Org Admin";
+          case "member":
+            return "Member";
+          default:
+            return role || "Unknown";
+        }
+      };
+
+      return React.createElement("span", { className: getRoleStyles(v) }, getRoleLabel(v));
+    },
+  },
+  { id: "ActionButton", label: "Actions", align: "center", minWidth: 120 },
+];
+
+export const MemberPaymentsData: Column<PaymentDataProps & { sn: number }>[] = [
+  {
+    id: "sn",
+    label: "S/N",
+    minWidth: 60,
+    // we already computed sn in the row object, so use it directly
+    format: (_v, row) => row.sn,
+  },
+  {
+    id: "memberId",
+    label: "Member",
+    minWidth: 160,
+    // memberId is an object (MemberPayment). Display a friendly string instead of [object Object]
+    format: (v) => {
+      if (!v) return "";
+      if (typeof v === "string") return v; // in case API changes later
+      // Prefer full name; fallback to email or _id
+      const fullName = [v.firstName, v.surname].filter(Boolean).join(" ");
+      return fullName || v.email || v._id || "";
+    },
+  },
+  { id: "amount", label: "Amount", minWidth: 140 },
+  {
+    id: "type",
+    label: "Type",
+    minWidth: 160,
+    format: (v: string) => {
+      if (!v) return "";
+      const raw = String(v).toLowerCase();
+      // Split on underscore or hyphen
+      const parts = raw.split(/[\-_]/).filter(Boolean);
+      if (parts.length === 0) return v;
+
+      const categoryRaw = parts[0];
+      const actionRaw = parts.slice(1).join(" ") || "";
+
+      const categoryMap: Record<string, string> = {
+        savings: "Savings",
+        saving: "Savings",
+        contribution: "Contributions",
+        contributions: "Contributions",
+        loan: "Loan",
+        investment: "Investment",
+        pension: "Pension",
+        general: "General",
+      };
+
+      const actionMap: Record<string, string> = {
+        deposit: "Deposit",
+        withdrawal: "Withdrawal",
+        withdraw: "Withdrawal",
+        repayment: "Repayment",
+        disbursement: "Disbursement",
+        payment: "Payment",
+        transfer: "Transfer",
+      };
+
+      const cat = categoryMap[categoryRaw] || categoryRaw.charAt(0).toUpperCase() + categoryRaw.slice(1);
+      // If multiple action tokens like "loan_repayment", parts after the first will be joined and mapped individually
+      const actionTokens = actionRaw.split(/\s+/).filter(Boolean);
+      const mappedAction = actionTokens
+        .map((t) => actionMap[t] || t.charAt(0).toUpperCase() + t.slice(1))
+        .join(" ")
+        .trim();
+
+      const label = mappedAction ? `${cat} (${mappedAction})` : cat;
+
+      const isDeposit = /deposit/.test(raw);
+      const isWithdrawal = /withdraw/.test(raw) || /withdrawal/.test(raw);
+      const colorClass = isDeposit
+        ? "text-emerald-600 dark:text-emerald-400"
+        : isWithdrawal
+        ? "text-rose-600 dark:text-rose-400"
+        : "text-slate-600 dark:text-slate-300";
+
+      return React.createElement("span", { className: `font-medium ${colorClass}` }, label);
+    },
+  },
+  {
+    id: "status",
+    label: "Status",
+    minWidth: 100,
+    format: (v) => {
+      const base =
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-wide ring-1 ring-inset";
+      const cls =
+        v === "pending"
+          ? "bg-amber-50 text-amber-700 ring-amber-600/20"
+          : v === "active"
+          ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
+          : v === "rejected"
+          ? "bg-rose-50 text-rose-700 ring-rose-600/20"
+          : "bg-gray-50 text-gray-600 ring-gray-500/20";
+      return React.createElement("span", { className: `${base} ${cls}` }, v);
+    },
+  },
+  { id: "description", label: "Description", minWidth: 180 },
+  {
+    id: "expectedProcessingDays",
+    label: "Processing Days",
+    minWidth: 180,
+    format: (v) => (v === null || v === undefined || v === "" ? "-" : v),
+  },
+  {
+    id: "createdAt",
+    label: "Date",
+    minWidth: 120,
+    format: (v) => new Date(v).toLocaleDateString(),
+  },
+  {
+    id: "updatedAt",
+    label: "Last Updated",
+    minWidth: 120,
+    format: (v) => new Date(v).toLocaleDateString(),
+  },
   { id: "ActionButton", label: "Actions", align: "center", minWidth: 120 },
 ];
 
@@ -758,10 +671,22 @@ export const dummyPieData = [
   { label: "Category D", value: 15 },
   { label: "Category E", value: 5 },
 ];
+export const depositInitialValues: deposit = { amount: "", type: "", description: "", payment_receipt: null };
 
-export const MemberContributionInitialValues = {
-  amount: "",
-  type: "",
-  description: "",
-  payment_receipt: null, // for file upload
+export const withdrawalInitialValues: withdrawal = { amount: "", type: "", description: "" };
+
+export const paymentApproveOrRejectIniValues = {
+  action: "",
+  rejectionReason: "",
+};
+
+export const AssignRoleInitialValues = {
+  userId: "",
+  organizationId: "",
+  role: "",
+};
+
+export const SettingsInitialValues = {
+  savingsMaxDays: 5,
+  contributionMaxDays: 90,
 };

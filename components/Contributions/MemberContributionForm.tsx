@@ -1,41 +1,65 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import FileUpload from "../reuseable/FileUpload";
+import { DepositSchema, WithdrawalSchema } from "@/utils/Yup/schema";
+import { depositInitialValues, withdrawalInitialValues } from "../assets/data";
 
 const TABS = ["Deposit", "Withdrawal"];
 
 type MemberContributionFormProps = {
   moduleType?: "savings" | "contribution" | "loan" | "statement" | "updateProfile" | "disputeResolution";
-  initialValues: any;
-  validationSchema: any;
   onSubmit?: (payload: any) => void;
+  resetSignal?: number; // 👈 new prop to trigger form reset
 };
 
 const MemberContributionForm = ({
   moduleType = "contribution",
-  initialValues,
-  validationSchema,
   onSubmit = () => {},
+  resetSignal = 0, // 👈 default value
 }: MemberContributionFormProps) => {
   const [activeTab, setActiveTab] = useState("Deposit");
 
+  const getTransactionType = (moduleType: string, activeTab: string) => {
+  if (moduleType === "loan") {
+    if (activeTab === "Deposit") return "loan";
+    if (activeTab === "Withdrawal") return "loan_repayment";
+  }
+  return `${moduleType}_${activeTab.toLowerCase()}`;
+};
+
   const formik = useFormik({
-    initialValues,
-    validationSchema,
+    initialValues: activeTab === "Deposit" ? depositInitialValues : withdrawalInitialValues,
+    validationSchema: activeTab === "Deposit" ? DepositSchema : WithdrawalSchema, // 👈 swap schema
+    enableReinitialize: true, // 👈 important so schema + initialValues reset when tab changes
+    validateOnMount: true,
     onSubmit: (values) => {
-      const type = `${moduleType}_${activeTab.toLowerCase()}`; // e.g. 'savings_deposit'
-      const payload = {
-        ...values,
-        type,
-      };
-      if (onSubmit) {
-        onSubmit(payload);
-      } else {
-        console.log(payload);
-      }
+      const type = getTransactionType(moduleType, activeTab);
+      const payload = { ...values, type };
+      // console.log("Form MemberContributionForm: ", payload);
+      onSubmit(payload);
     },
   });
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "Deposit") {
+      formik.resetForm({ values: depositInitialValues });
+    } else {
+      formik.resetForm({ values: withdrawalInitialValues });
+    }
+  };
+
+  useEffect(() => {
+    if (resetSignal > 0) {
+      formik.resetForm({
+        values: activeTab === "Deposit" ? depositInitialValues : withdrawalInitialValues,
+      });
+    }
+  }, [resetSignal]);
+
+  // console.log("MemberContributionForm User & Role: ", { formik });
 
   return (
     <div className="w-full max-w-md py-3 px-2 sm:px-4 h-full overflow-auto">
@@ -50,7 +74,7 @@ const MemberContributionForm = ({
                 ? "border-green-600 text-green-700 dark:text-green-400"
                 : "border-transparent text-gray-500 dark:text-gray-400 hover:text-green-600"
             }`}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => handleTabChange(tab)}
           >
             {tab}
           </button>
@@ -60,8 +84,20 @@ const MemberContributionForm = ({
       <form onSubmit={formik.handleSubmit}>
         {activeTab === "Deposit" && (
           <div className="flex flex-col gap-y-4 md:grid md:grid-cols-2 md:gap-4">
-            <Input formik={formik} name="amount" type="number" placeholder="Enter amount" />
-            <Input formik={formik} name="description" type="text" placeholder="Description" />
+            <Input
+              name="amount"
+              type="number"
+              placeholder="Enter amount"
+              onChange={formik.handleChange}
+              formik={formik}
+            />
+            <Input
+              formik={formik}
+              name="description"
+              type="text"
+              placeholder="Description"
+              onChange={formik.handleChange}
+            />
             <div className="md:col-span-2">
               <FileUpload formik={formik} name="payment_receipt" />
             </div>
@@ -69,16 +105,24 @@ const MemberContributionForm = ({
         )}
         {activeTab === "Withdrawal" && (
           <div className="flex flex-col gap-y-4 md:grid md:grid-cols-2 md:gap-4">
-            <Input formik={formik} name="amount" type="number" placeholder="Withdrawal amount" />
-            <Input formik={formik} name="description" type="text" placeholder="Withdrawal description" />
+            <Input
+              formik={formik}
+              name="amount"
+              type="number"
+              placeholder="Withdrawal amount"
+              onChange={formik.handleChange}
+            />
+            <Input
+              formik={formik}
+              name="description"
+              type="text"
+              placeholder="Withdrawal description"
+              onChange={formik.handleChange}
+            />
             {/* You can add more fields for withdrawal if needed */}
           </div>
         )}
-        <button
-          type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mt-6 w-full"
-          disabled={formik.isSubmitting}
-        >
+        <Button type="submit" className="mt-6 w-full" disabled={formik.isSubmitting || !formik.isValid}>
           {formik.isSubmitting
             ? moduleType === "loan"
               ? "Processing..."
@@ -86,7 +130,7 @@ const MemberContributionForm = ({
             : moduleType === "loan"
             ? "Process Loans"
             : `Submit ${activeTab}`}
-        </button>
+        </Button>
       </form>
     </div>
   );

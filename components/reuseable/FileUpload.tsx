@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UploadCloud, Trash2 } from "lucide-react";
 import { FormikProps } from "formik";
 
@@ -58,7 +58,6 @@ const TestFileUpload: React.FC<TestFileUploadProps> = ({
     setUploadProgress(0);
     onFileUploadProgress?.({ name: displayName, loading: 0 });
 
-    // Simulate upload progress
     let progress = 0;
     const interval = setInterval(() => {
       progress += 10;
@@ -76,13 +75,15 @@ const TestFileUpload: React.FC<TestFileUploadProps> = ({
     }, 150);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       handleFileUpload(file);
       setFileNames(file.name);
-      formik.setFieldValue(name, file);
-      formik.setFieldTouched(name, true);
+
+      await formik.setFieldValue(name, file); // set the file
+      formik.setFieldTouched(name, true, true); // mark as touched + validate immediately
+      formik.validateField(name); // force re-validation
     }
   };
 
@@ -90,12 +91,30 @@ const TestFileUpload: React.FC<TestFileUploadProps> = ({
     formik.setFieldTouched(name, true); // triggers validation
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setFileNames("");
     setUploadProgress(0);
     setUploading(false);
-    formik.setFieldValue(name, "");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // clear file input value
+    }
+
+    await formik.setFieldValue(name, "");
+    formik.setFieldTouched(name, true);
+    await formik.validateField(name);
   };
+
+    useEffect(() => {
+    if (!formik.values[name]) {
+      setFileNames("");
+      setUploadProgress(0);
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // reset input when form resets
+      }
+    }
+  }, [formik.values[name]]);
 
   return (
     <div className="relative w-full h-10 flex items-center">
@@ -128,7 +147,7 @@ const TestFileUpload: React.FC<TestFileUploadProps> = ({
             className="h-full transition-all duration-300"
             style={{
               width: `${uploadProgress}%`,
-              backgroundColor: "#FDB815",
+              backgroundColor: "#84d896ff",
             }}
           ></div>
         </div>
@@ -141,7 +160,7 @@ const TestFileUpload: React.FC<TestFileUploadProps> = ({
         className="hidden"
         onChange={handleChange}
         onBlur={handleBlur}
-        accept="image/*,application/pdf"
+        accept="image/*, application/pdf"
       />
 
       {/* Error */}

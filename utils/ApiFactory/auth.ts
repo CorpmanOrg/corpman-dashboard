@@ -74,5 +74,5 @@ export const logoutFn = async () => {
   });
   StorageUtil.removeSessionItem("logData");
   StorageUtil.clearSessionItem()
-  window.location.assign("/auth?mode=signin");
+  window.location.assign("/auth");
 };

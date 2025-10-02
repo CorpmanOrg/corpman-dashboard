@@ -3,18 +3,17 @@
 import React, { useState } from "react";
 import RadioInput from "@/components/reuseable/RadioInput";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import MemberContributionForm from "@/components/Contributions/MemberContributionForm";
-
 import GenerateStatement from "./generateStatement";
 import UpdateProfile from "./updateProfile";
 import DisputeResolution from "./dispute";
-import { MemberContributionInitialValues } from "@/components/assets/data";
-import { MemberContributionSchema } from "@/utils/Yup/schema";
+import CheckBalance from "./checkBalance";
+import LoanEligibility from "./loanEligibility";
 
 export default function MyReports() {
   const [selectedType, setSelectedType] = useState<string>("");
 
-  const allowedTypes = ["statement", "updateProfile", "disputeResolution"] as const;
+  const allowedTypes = ["statement", "updateProfile", "disputeResolution", "checkBalance", "loanEligibility"] as const;
+
   type ModuleType = (typeof allowedTypes)[number];
   const safeSelectedType = allowedTypes.includes(selectedType as ModuleType) ? (selectedType as ModuleType) : undefined;
 
@@ -49,6 +48,20 @@ export default function MyReports() {
             checked={selectedType === "disputeResolution"}
             onChange={() => setSelectedType("disputeResolution")}
           />
+           <RadioInput
+            name="reportType"
+            value="checkBalance"
+            label="Check Balance"
+            checked={selectedType === "checkBalance"}
+            onChange={() => setSelectedType("checkBalance")}
+          />
+          <RadioInput
+            name="reportType"
+            value="loanEligibility"
+            label="Loan Eligibility"
+            checked={selectedType === "loanEligibility"}
+            onChange={() => setSelectedType("loanEligibility")}
+          />
         </div>
         {safeSelectedType && (
           <div className="mt-8">
@@ -58,6 +71,10 @@ export default function MyReports() {
               <UpdateProfile />
             ) : safeSelectedType === "disputeResolution" ? (
               <DisputeResolution />
+            ) : safeSelectedType === "checkBalance" ? (
+              <CheckBalance />
+            ) : safeSelectedType === "loanEligibility" ? (
+              <LoanEligibility />
             ) : null}
           </div>
         )}

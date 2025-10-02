@@ -7,12 +7,12 @@ export async function PATCH(req: NextRequest) {
   const token = cookieStore.get("myUserToken")?.value;
 
   if (!token) {
-    console.error("Token missing");
+    // console.error("Token missing");
     return NextResponse.json({ error: "Token missing" }, { status: 401 });
   }
 
   const payload = await req.json();
-  console.log("Payload received in Next.js route:", payload);
+  // console.log("Payload received in Next.js route:", payload);
 
   try {
     const response = await fetch(`${apiUrl}/member/approve/member`, {
@@ -26,18 +26,18 @@ export async function PATCH(req: NextRequest) {
 
     const contentType = response.headers.get("content-type");
     const rawText = await response.text();
-    console.log("Backend raw response:", rawText);
+    // console.log("Backend raw response:", rawText);
 
     let data;
     if (contentType && contentType.includes("application/json")) {
       data = JSON.parse(rawText);
     } else {
       // Not JSON, log and handle as error
-      console.error("Backend did not return JSON:", rawText);
+      // console.error("Backend did not return JSON:", rawText);
       return NextResponse.json({ error: "Backend did not return JSON", details: rawText }, { status: response.status });
     }
-    console.log("Backend response status:", response.status);
-    console.log("Backend response data:", data);
+    // console.log("Backend response status:", response.status);
+    // console.log("Backend response data:", data);
 
     if (!response.ok) {
       // Forward backend error details
@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error("Next.js route error:", error);
+    // console.error("Next.js route error:", error);
     return NextResponse.json({ error: "Internal server error from frontend", details: error }, { status: 500 });
   }
 }
