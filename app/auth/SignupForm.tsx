@@ -50,7 +50,7 @@ const SignupForm = () => {
         </div>
 
         {isSignIn ? (
-          <Signin flipBack={goToSignUp} />
+          <Signin />
         ) : (
           <>
             <CardContent className="p-6">
@@ -59,7 +59,7 @@ const SignupForm = () => {
                 initialValues={SignUpInitialValues}
                 validationSchema={SignupSchema}
                 onSubmit={(values) => {
-                  console.log("Payload: ", values);
+                  console.log("Payload: ", "values");
                 }}
               >
                 {(formik) => (

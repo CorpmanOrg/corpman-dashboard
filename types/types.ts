@@ -176,6 +176,7 @@ export type Statement = {
   date: string; // ISO string
   description: string;
   type: "credit" | "debit";
+  transactionType: "savings" | "contributions" | "loans";
   amount: number;
   balance: number;
   action?: "ActionButton";

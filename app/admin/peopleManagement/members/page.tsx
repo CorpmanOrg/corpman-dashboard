@@ -111,7 +111,7 @@ export default function MembersPage() {
   const mutation = useMutation<ApproveRejectResponse, Error, ApproveRejectPayload>({
     mutationFn: approveOrRejectMembersFn,
     onSuccess: (data) => {
-      console.log("✅ Approve/Reject success:", data);
+      // console.log("✅ Approve/Reject success:", data);
       showToast("success", data?.message || "Action successful!");
       closeModal();
       // Optionally refetch members here
@@ -164,7 +164,7 @@ export default function MembersPage() {
             const payload: ApproveRejectPayload = {
               updates: [{ memberId: row._id, status: "active" }],
             };
-            console.log("➡️ Approving member with payload:", payload);
+            // console.log("➡️ Approving member with payload:", payload);
             mutation.mutate(payload);
           },
         });
@@ -176,7 +176,7 @@ export default function MembersPage() {
             const payload: ApproveRejectPayload = {
               updates: [{ memberId: row._id, status: "rejected" }],
             };
-            console.log("➡️ Rejecting member with payload:", payload);
+            // console.log("➡️ Rejecting member with payload:", payload);
             mutation.mutate(payload);
           },
         });
@@ -215,19 +215,20 @@ export default function MembersPage() {
   const getStatusIconGradient = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-gradient-to-r from-[#5aed5f] to-[#a4f5a7] dark:from-green-800 dark:to-green-600";
-      case "pending":
-        return "bg-gradient-to-r from-[#ff8800] to-[#ffb347] dark:from-yellow-800 dark:to-yellow-600";
-      case "rejected":
-        return "bg-gradient-to-r from-[#ed5a5a] to-[#f5a4a4] dark:from-red-800 dark:to-red-600";
-      case "inactive":
-        return "bg-gradient-to-r from-[#6b7280] to-[#9ca3af] dark:from-gray-700 dark:to-gray-600";
+        // return "bg-gradient-to-r from-[#5aed5f] to-[#a4f5a7] dark:from-green-800 dark:to-green-600";
+        return "bg-[#15c41bff] dark:from-green-800 dark:to-green-600";
+      // case "pending":
+      //   return "bg-gradient-to-r from-[#ff8800] to-[#ffb347] dark:from-yellow-800 dark:to-yellow-600";
+      // case "rejected":
+      //   return "bg-gradient-to-r from-[#ed5a5a] to-[#f5a4a4] dark:from-red-800 dark:to-red-600";
+      // case "inactive":
+      //   return "bg-gradient-to-r from-[#6b7280] to-[#9ca3af] dark:from-gray-700 dark:to-gray-600";
       default:
-        return "bg-gradient-to-r from-[#6b7280] to-[#9ca3af] dark:from-gray-700 dark:to-gray-600";
+        return "bg-[#15c41bff] dark:from-green-800 dark:to-green-600";
     }
   };
 
-  console.log("User Detail: ", { last3Members, currentOrgId });
+  // console.log("User Detail: ", { last3Members, currentOrgId });
 
   // Fetch single member details when a member is selected & modal open
   const {
@@ -342,6 +343,7 @@ export default function MembersPage() {
     return (
       <div className="px-6 py-6 space-y-8 animate-in fade-in duration-500">
         {/* Member Cards Loading Skeleton */}
+        <p className="animate-pulse">Loading member details...</p>
         {currentRole === "org_admin" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (

@@ -13,6 +13,8 @@ import { useAuth } from "@/context/AuthContext";
 import { StorageUtil } from "@/utils/StorageUtil";
 import Toastbar from "@/components/Toastbar";
 import { ToastSeverity, ToastState } from "@/types/types";
+import { createErrorHandler, shouldLogout } from "@/utils/handleAppErr";
+import { useLoading } from "@/context/LoadingContext";
 
 interface BackProps {
   flipBack: (val: boolean) => void;
@@ -21,6 +23,8 @@ interface BackProps {
 const Signin = () => {
   const router = useRouter();
   const { refetchUser } = useAuth();
+  const { setLoading } = useLoading();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const [toast, setToast] = useState<ToastState>({
     open: false,
@@ -36,6 +40,22 @@ const Signin = () => {
     });
   };
 
+  // Create your amazing error handler!
+  const handleLoginError = createErrorHandler({
+    showToast: (message, type) => {
+      const severity = type === "error" ? "error" : "warning";
+      showToast(severity, message);
+    },
+    onLogout: () => {
+      // Handle forced logout if needed
+      // console.log("Session expired - redirecting to login");
+      // Could clear storage and redirect if needed
+    },
+    onRetry: () => {
+      // console.log("Error suggests retry - user can try again");
+    },
+  });
+
   const handleCloseToast = () => {
     setToast((prevS) => ({
       ...prevS,
@@ -46,24 +66,39 @@ const Signin = () => {
   const { mutate: loginUser, isPending } = useMutation({
     mutationFn: loginFn,
     onSuccess: (data) => {
-      StorageUtil.setSessionItem("logData", data);
-      refetchUser();
-      router.push("/");
+      try {
+        setIsRedirecting(true);
+        setLoading(true, "Preparing your dashboard...");
+        StorageUtil.setSessionItem("logData", data);
+        showToast("success", "Login successful! Loading dashboard...");
+
+        // Small delay to ensure smooth transition
+        setTimeout(async () => {
+          await refetchUser();
+          router.push("/");
+          // Loading will be cleared by the dashboard page or auth context
+        }, 800);
+      } catch (error) {
+        console.error("Post-login error:", error);
+        setIsRedirecting(false);
+        setLoading(false);
+        showToast("error", "Login successful, but there was an issue redirecting. Please refresh the page.");
+      }
     },
     onError: (error: any) => {
       console.error("From Login Error: ", error);
 
-      // Try to extract backend message
-      const backendMessage =
-        error?.response?.data?.message || // axios-like response
-        error?.message || // generic error
-        null;
+      // Use your amazing error handler! 🎉
+      const errorResult = handleLoginError(error);
 
-      if (backendMessage) {
-        showToast("error", backendMessage);
-      } else {
-        // fallback for network / unknown errors
-        showToast("error", "Unable to connect. Please try again later.");
+      // Optional: Additional logging for development
+      if (process.env.NODE_ENV === "development") {
+        console.log("Error Details:", {
+          // type: errorResult.type,
+          // shouldRetry: errorResult.shouldRetry,
+          // status: errorResult.status,
+          "error object": "error",
+        });
       }
     },
   });
@@ -82,8 +117,15 @@ const Signin = () => {
         <Formik
           initialValues={LoginInitialValues}
           validationSchema={LoginSchema}
-          onSubmit={(values) => {
-            loginUser(values);
+          onSubmit={(values, { setSubmitting }) => {
+            try {
+              loginUser(values);
+            } catch (error) {
+              console.error("Form submission error:", error);
+              showToast("error", "An unexpected error occurred. Please try again.");
+            } finally {
+              setSubmitting(false);
+            }
           }}
         >
           {(formik) => (
@@ -95,39 +137,51 @@ const Signin = () => {
                   value={formik.values.email}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  // touched={formik.touched.email}
-                  // error={formik.errors.email}
                   placeholder="Email"
+                  className={formik.touched.email && formik.errors.email ? "border-red-500" : ""}
                 />
+                {formik.touched.email && formik.errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.email}</p>
+                )}
               </div>
 
-              <div className="mt-[10px]">
+              <div className="mt-[10px] space-y-2">
                 <Input
                   name="password"
                   type="password"
                   value={formik.values.password}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  // touched={formik.touched.password}
-                  // error={formik.errors.password}
                   placeholder="Password"
+                  className={formik.touched.password && formik.errors.password ? "border-red-500" : ""}
                 />
+                {formik.touched.password && formik.errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{formik.errors.password}</p>
+                )}
               </div>
 
               <div className="mt-[25px]">
                 <Button
                   type="submit"
-                  className="w-full bg-green-500 hover:bg-green-600"
-                  disabled={!formik.values.email || !formik.values.password}
+                  className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={
+                    !formik.values.email || !formik.values.password || isPending || !formik.isValid || isRedirecting
+                  }
                 >
-                  {isPending ? "Validating..." : "Signin"}
+                  {isRedirecting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Loading Dashboard...
+                    </div>
+                  ) : isPending ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Validating...
+                    </div>
+                  ) : (
+                    "Sign In"
+                  )}
                 </Button>
-                {/* <p
-                  className="text-gray-500 font-thin text-sm mt-2 cursor-pointer hover:text-green-500 hover:underline"
-                  onClick={handleBack}
-                >
-                  back
-                </p> */}
               </div>
             </Form>
           )}

@@ -19,38 +19,86 @@ export const signupFn = async (payload: signUp) => {
 };
 
 export const loginFn = async (payload: { email: string; password: string }) => {
-  const res = await fetch("/api/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data.error || "Login failed");
+    if (!res.ok) {
+      // Create a more detailed error object that works with your error handler
+      const error = new Error(data.error || "Login failed") as any;
+
+      // Add response structure that your error handler expects
+      error.response = {
+        status: res.status,
+        data: {
+          message: data.error || "Login failed",
+          payload: {
+            responseMessage: data.error || "Invalid credentials provided",
+          },
+        },
+      };
+
+      // Add additional context for better error handling
+      error.status = res.status;
+      error.code = data.code || "LOGIN_FAILED";
+
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    // If it's already our custom error, re-throw it
+    if (error instanceof Error && (error as any).response) {
+      throw error;
+    }
+
+    // Handle network errors with structure your error handler expects
+    const networkError = new Error("Network error. Please check your connection and try again.") as any;
+    networkError.message = "Network Error";
+    networkError.response = {
+      status: 0,
+      data: {
+        message: "Network error. Please check your connection and try again.",
+      },
+    };
+
+    throw networkError;
   }
-  return data;
 };
 
 export const resendEmailFn = async (payload: resendEmail) => {
-  const res = await fetch("/api/resendVerification", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch("/api/resendVerification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data.error || "Resend email failed");
+    if (!res.ok) {
+      const error = new Error(data.error || "Resend email failed");
+      (error as any).status = res.status;
+      (error as any).code = data.code || "RESEND_FAILED";
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof Error && (error as any).status) {
+      throw error;
+    }
+    throw new Error("Network error. Please check your connection and try again.");
   }
-
-  return data;
 };
 
 export const emailVerifyFn = async ({ token }: { token: string }) => {
@@ -73,6 +121,6 @@ export const logoutFn = async () => {
     method: "POST",
   });
   StorageUtil.removeSessionItem("logData");
-  StorageUtil.clearSessionItem()
+  StorageUtil.clearSessionItem();
   window.location.assign("/auth");
 };

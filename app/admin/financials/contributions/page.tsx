@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
 import { MemberPaymentsData } from "@/components/assets/data";
+import { getAdminBalanceFn } from "@/utils/ApiFactory/admin";
 import {
   TError,
   ToastSeverity,
@@ -22,7 +23,7 @@ import RejectionModal from "@/components/Modals/RejectionModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 import Toastbar from "@/components/Toastbar";
 import BaseTable from "@/components/BaseTable";
-import { CreditCard, GitBranchPlus, PiggyBank } from "lucide-react";
+import { CreditCard, GitBranchPlus, PiggyBank, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
 
 type PaymentRow = PaymentDataProps & { id: string; ActionButton: string; sn: number };
 
@@ -68,7 +69,7 @@ function ReceiptViewer({ path }: { path: string }) {
 
 export default function ContributionsPaymentsPage() {
   const { modal, openModal, closeModal } = useModal();
-  const { selectedOrganization } = useAuth();
+  const { selectedOrganization, currentOrgId, currentRole } = useAuth();
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -105,6 +106,41 @@ export default function ContributionsPaymentsPage() {
     }));
 
   const {
+    data: adminData,
+    isLoading: adminLoading,
+    isFetching: adminFetching,
+    error: adminError,
+    refetch: refetchAdmin,
+  } = useQuery({
+    queryKey: ["admin-balance", currentOrgId],
+    queryFn: () => getAdminBalanceFn(currentOrgId!),
+    enabled: currentRole === "org_admin" && !!currentOrgId,
+    staleTime: 60_000,
+    select: (raw) => raw?.organization ?? null,
+  });
+
+  const adminOrgBalance = [
+    {
+      title: "Savings",
+      value: adminData?.totalBalances?.totalSavings ?? 0,
+      icon: <PiggyBank />,
+      loading: adminLoading,
+    },
+    {
+      title: "Contributions",
+      value: adminData?.totalBalances?.totalContributions ?? 0,
+      icon: <GitBranchPlus />,
+      loading: adminLoading,
+    },
+    {
+      title: "Loans",
+      value: adminData?.totalBalances?.totalLoansIssued ?? 0,
+      icon: <CreditCard />,
+      loading: adminLoading,
+    },
+  ];
+
+  const {
     data: paymentsResp,
     isLoading,
     isSuccess,
@@ -139,54 +175,6 @@ export default function ContributionsPaymentsPage() {
     { key: "reject", label: "Reject" },
   ];
 
-  // const mutation = useMutation({
-  //   mutationFn: approveOrRejectPaymentsFn,
-  //   // Optimistic update for current visible page
-  //   onMutate: async (vars: { id: string; action: string; rejectionReason?: string }) => {
-  //     await queryClient.cancelQueries({ queryKey: ["payments", statusFilter, page, rowsPerPage] });
-  //     const key = ["payments", statusFilter, page, rowsPerPage];
-  //     const previous = queryClient.getQueryData<MemberPaymentsResponse>(key as any);
-  //     if (previous) {
-  //       const updated = { ...previous } as MemberPaymentsResponse;
-  //       updated.payments = updated.payments.map((p: any) => {
-  //         if (p._id === vars.id || p.id === vars.id) {
-  //           if (vars.action === "approve") {
-  //             return { ...p, status: "approved" };
-  //           }
-  //           if (vars.action === "reject") {
-  //             return { ...p, status: "rejected" };
-  //           }
-  //         }
-  //         return p;
-  //       });
-  //       // If we are on pending list and approving/rejecting, we can optionally filter them out
-  //       if (statusFilter === "pending") {
-  //         updated.payments = updated.payments.filter((p: any) => p.status === "pending");
-  //         updated.total = updated.payments.length;
-  //       }
-  //       queryClient.setQueryData(key as any, updated);
-  //     }
-  //     return { previous }; // context for rollback
-  //   },
-  //   onError: (err: any, _vars, context: any) => {
-  //     if (context?.previous) {
-  //       queryClient.setQueryData(["payments", statusFilter, page, rowsPerPage], context.previous);
-  //     }
-  //     showToast("error", err?.message || "Failed to update payment");
-  //   },
-  //   onSuccess: () => {
-  //     showToast("success", "Payment updated successfully");
-  //     closeModal();
-  //   },
-  //   onSettled: async () => {
-  //     // Broad invalidate (predicate catches every variant of payments queries regardless of page/status)
-  //     await queryClient.invalidateQueries({
-  //       predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === "payments",
-  //     });
-  //     // Force immediate refetch to observe backend change even if data not considered stale yet
-  //     await queryClient.refetchQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === "payments" });
-  //   },
-  // });
   const mutation = useMutation({
     mutationFn: approveOrRejectPaymentsFn,
 
@@ -269,29 +257,94 @@ export default function ContributionsPaymentsPage() {
 
   const STATUS_OPTIONS: PaymentStatusFilter[] = ["pending", "approved", "rejected", "all"];
 
+  // Get payment counts by status for enhanced filter UI
+  const getStatusCounts = () => {
+    const allPayments = paymentsResp?.payments || [];
+    const counts = {
+      pending: allPayments.filter((p) => p.status === "pending").length,
+      approved: allPayments.filter((p) => p.status === "approved").length,
+      rejected: allPayments.filter((p) => p.status === "rejected").length,
+      all: allPayments.length,
+    };
+    return counts;
+  };
+
+  const statusCounts = getStatusCounts();
+
   const renderStatusFilter = () => (
-    <div className="flex flex-wrap gap-2 items-center">
-      {STATUS_OPTIONS.map((opt) => {
-        const active = statusFilter === opt;
-        const disabled = opt === "all" && statusFilter !== "all" && false; // keep logic placeholder if need disabling
-        return (
-          <button
-            key={opt}
-            type="button"
-            disabled={disabled || isLoading}
-            onClick={() => setStatusFilter(opt)}
-            className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors
-              ${
-                active
-                  ? "bg-emerald-600 text-white border-emerald-600"
-                  : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Filter by Payment Status</h3>
+      <div className="flex flex-wrap gap-3">
+        {STATUS_OPTIONS.map((opt) => {
+          const active = statusFilter === opt;
+          const count = statusCounts[opt] || 0;
+          const disabled = (opt === "all" && statusFilter !== "all" && false) || isLoading; // keep logic placeholder if need disabling
+
+          const getIcon = () => {
+            switch (opt) {
+              case "pending":
+                return <Clock className="h-4 w-4" />;
+              case "approved":
+                return <CheckCircle className="h-4 w-4" />;
+              case "rejected":
+                return <XCircle className="h-4 w-4" />;
+              default:
+                return <FileText className="h-4 w-4" />;
+            }
+          };
+
+          const getStatusColor = () => {
+            switch (opt) {
+              case "pending":
+                return active
+                  ? "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/25 scale-105"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-300 dark:hover:border-amber-600";
+              case "approved":
+                return active
+                  ? "bg-green-500 text-white border-green-500 shadow-lg shadow-green-500/25 scale-105"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-green-900/20 hover:border-green-300 dark:hover:border-green-600";
+              case "rejected":
+                return active
+                  ? "bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/25 scale-105"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-600";
+              default:
+                return active
+                  ? "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/25 scale-105"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600";
+            }
+          };
+
+          return (
+            <button
+              key={opt}
+              type="button"
+              disabled={disabled}
+              onClick={() => setStatusFilter(opt)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 border ${getStatusColor()} ${
+                disabled ? "opacity-50 cursor-not-allowed" : ""
               }`}
-            aria-pressed={active}
-          >
-            {opt.charAt(0).toUpperCase() + opt.slice(1)}
-          </button>
-        );
-      })}
+              aria-pressed={active}
+            >
+              {getIcon()}
+              <span className="capitalize">{opt}</span>
+              <span
+                className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                  active ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {statusFilter !== "all" && (
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Showing{" "}
+          <span className="font-semibold text-green-600 dark:text-green-400">{statusCounts[statusFilter] || 0}</span>{" "}
+          {statusFilter} payments
+        </p>
+      )}
     </div>
   );
 
@@ -417,7 +470,7 @@ export default function ContributionsPaymentsPage() {
 
   const isMutating = mutation.status === "pending";
 
-  console.log("Statistics Data:", { stats, selectedOrganization });
+  // console.log("Statistics Data:", { adminData });
 
   return (
     <div className="space-y-8">
@@ -443,7 +496,19 @@ export default function ContributionsPaymentsPage() {
         {modal.data?.content}
       </DetailsModal>
 
-      <MainStatisticsCard stats={stats} showActivityCard={false} />
+      {adminError && !adminLoading && (
+        <div className="mx-6 mb-2 rounded border border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs px-3 py-2 flex items-center justify-between">
+          <span className="truncate">Failed to load balances. {(adminError as any)?.message || ""}</span>
+          <button
+            onClick={() => (currentRole === "member" ? refetchAdmin() : refetchAdmin())}
+            className="ml-3 inline-flex items-center px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      <MainStatisticsCard stats={adminOrgBalance} fetching={adminFetching} />
 
       <div className="px-6">{renderStatusFilter()}</div>
 

@@ -149,19 +149,22 @@ export function SideNav() {
     if (item.type === "category") {
       if (item.key === "people") {
         item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["members", "dispute"].includes(c.key)
+          ["members"].includes(c.key)
+          // ["members", "dispute"].includes(c.key)
         );
         return true;
       }
       if (item.key === "financials") {
         item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["payments", "approvedPayments", "rejectedPayments", "investments", "welfare"].includes(c.key)
+          ["payments"].includes(c.key)
+          // ["payments", "investments", "welfare"].includes(c.key)
         );
         return true;
       }
       if (item.key === "records") {
         item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["statement", "reporting", "minutes", "profile"].includes(c.key)
+          ["statement", "profile"].includes(c.key)
+          // ["statement", "reporting", "minutes", "profile"].includes(c.key)
         );
         return true;
       }

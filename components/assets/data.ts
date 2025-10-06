@@ -94,7 +94,7 @@ export const Dummy_Memebers_Column: Column<MemberWithActions & { sn: number }>[]
           case "org_admin":
             return `${baseClasses} text-[#ec4899] dark:text-pink-300`;
           case "member":
-            return `${baseClasses} text-[#ea580c] dark:text-orange-300`;
+            return `${baseClasses} text-[#564ef4ff] dark:text-[#2219d2ff]]`;
           default:
             return `${baseClasses} text-[#374151] dark:text-gray-300`;
         }
@@ -198,19 +198,57 @@ export const MemberPaymentsData: Column<PaymentDataProps & { sn: number }>[] = [
   {
     id: "status",
     label: "Status",
-    minWidth: 100,
+    minWidth: 120,
     format: (v) => {
-      const base =
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-wide ring-1 ring-inset";
-      const cls =
-        v === "pending"
-          ? "bg-amber-50 text-amber-700 ring-amber-600/20"
-          : v === "active"
-          ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
-          : v === "rejected"
-          ? "bg-rose-50 text-rose-700 ring-rose-600/20"
-          : "bg-gray-50 text-gray-600 ring-gray-500/20";
-      return React.createElement("span", { className: `${base} ${cls}` }, v);
+      // World-class premium status badge design
+      const getStatusConfig = (status: string) => {
+        switch (status) {
+          case "pending":
+            return {
+              bgClass: "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20",
+              textClass: "text-amber-700 dark:text-amber-300",
+              borderClass: "border border-amber-200 dark:border-amber-700/50",
+              icon: "⏳",
+              shadowClass: "shadow-sm shadow-amber-200/50 dark:shadow-amber-900/30",
+            };
+          case "approved":
+          case "active":
+            return {
+              bgClass: "bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20",
+              textClass: "text-emerald-700 dark:text-emerald-300",
+              borderClass: "border border-emerald-200 dark:border-emerald-700/50",
+              icon: "✅",
+              shadowClass: "shadow-sm shadow-emerald-200/50 dark:shadow-emerald-900/30",
+            };
+          case "rejected":
+            return {
+              bgClass: "bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20",
+              textClass: "text-rose-700 dark:text-rose-300",
+              borderClass: "border border-rose-200 dark:border-rose-700/50",
+              icon: "❌",
+              shadowClass: "shadow-sm shadow-rose-200/50 dark:shadow-rose-900/30",
+            };
+          default:
+            return {
+              bgClass: "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20",
+              textClass: "text-gray-700 dark:text-gray-300",
+              borderClass: "border border-gray-200 dark:border-gray-700/50",
+              icon: "ℹ️",
+              shadowClass: "shadow-sm shadow-gray-200/50 dark:shadow-gray-900/30",
+            };
+        }
+      };
+
+      const config = getStatusConfig(v);
+      const displayText = v === "active" ? "approved" : v;
+
+      return React.createElement(
+        "span",
+        {
+          className: `inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all duration-200 hover:scale-105 ${config.bgClass} ${config.textClass} ${config.borderClass} ${config.shadowClass}`,
+        },
+        displayText
+      );
     },
   },
   { id: "description", label: "Description", minWidth: 180 },
@@ -242,6 +280,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Salary Payment",
     type: "credit",
+    transactionType: "savings",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -252,6 +291,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "ATM Withdrawal",
     type: "debit",
+    transactionType: "savings",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -262,6 +302,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Fees Payment",
     type: "debit",
+    transactionType: "contributions",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -272,6 +313,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Pension Withdrawal",
     type: "credit",
+    transactionType: "savings",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -282,6 +324,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Ajo Contribution",
     type: "debit",
+    transactionType: "contributions",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -292,6 +335,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Laptop Purchase",
     type: "credit",
+    transactionType: "loans",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -302,6 +346,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Investment Payment",
     type: "debit",
+    transactionType: "savings",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -312,6 +357,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Union Contribution",
     type: "credit",
+    transactionType: "contributions",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -322,6 +368,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Ahlaja Payment",
     type: "credit",
+    transactionType: "loans",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -332,6 +379,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Funds Withdrawal",
     type: "credit",
+    transactionType: "savings",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -342,6 +390,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Sharp Tv Purchase",
     type: "credit",
+    transactionType: "loans",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -352,6 +401,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Aina Fees",
     type: "debit",
+    transactionType: "contributions",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -362,6 +412,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Rent Payment",
     type: "credit",
+    transactionType: "loans",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -372,6 +423,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "ATShopM Withdrawal",
     type: "debit",
+    transactionType: "savings",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -382,6 +434,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Ajo Payment",
     type: "credit",
+    transactionType: "contributions",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -392,6 +445,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Eforiro Purchase",
     type: "credit",
+    transactionType: "loans",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -402,6 +456,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Ahoe Payment",
     type: "credit",
+    transactionType: "savings",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -412,6 +467,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Amazon Payment",
     type: "debit",
+    transactionType: "loans",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -422,6 +478,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Sandals Payment",
     type: "debit",
+    transactionType: "contributions",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -432,6 +489,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "ATM Card Bills",
     type: "debit",
+    transactionType: "savings",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -442,6 +500,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Shelve Payment",
     type: "credit",
+    transactionType: "loans",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -452,6 +511,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Lawma Payment",
     type: "debit",
+    transactionType: "contributions",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -462,6 +522,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Alfa Payment",
     type: "credit",
+    transactionType: "savings",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -472,6 +533,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Business Summit",
     type: "debit",
+    transactionType: "loans",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -482,6 +544,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Nike Payment",
     type: "credit",
+    transactionType: "contributions",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -492,6 +555,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Twenty Six",
     type: "debit",
+    transactionType: "savings",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -502,6 +566,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Aloe Payment",
     type: "credit",
+    transactionType: "loans",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -512,6 +577,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Mineral Withdrawal",
     type: "debit",
+    transactionType: "savings",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -522,6 +588,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Fine Payment",
     type: "credit",
+    transactionType: "contributions",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -532,6 +599,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Plenary Withdrawal",
     type: "debit",
+    transactionType: "loans",
     amount: 1000,
     balance: 14000,
     ActionButton: "ActionButton",
@@ -542,6 +610,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-01T10:00:00Z",
     description: "Scholars Payment",
     type: "credit",
+    transactionType: "savings",
     amount: 5000,
     balance: 15000,
     ActionButton: "ActionButton",
@@ -552,6 +621,7 @@ export const dummyStatements: StatementWithActions[] = [
     date: "2025-08-02T12:00:00Z",
     description: "Film Withdrawal",
     type: "debit",
+    transactionType: "contributions",
     amount: 100,
     balance: 14000,
     ActionButton: "ActionButton",

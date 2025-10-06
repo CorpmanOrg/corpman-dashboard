@@ -41,12 +41,12 @@ export default function Transactions() {
   const mutation = useMutation<MakePaymentRes, Error, deposit, withdrawal>({
     mutationFn: memberPaymentFn,
     onSuccess: (data) => {
-      console.log("Transaction Success: ", data);
+      // console.log("Transaction Success: ", data);
       showToast("success", data.message || "Transaction successful!");
       setResetSignal((prev) => prev + 1);
     },
     onError: (err: any) => {
-      console.log("Transaction Error: ", err);
+      // console.log("Transaction Error: ", err);
       showToast("error", err.message || "Transaction failed!");
     },
   });

@@ -17,14 +17,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={montserrat.className}>
         <NextTopLoader
-          color="linear-gradient(to right, #5aed5f, #1b951fff)"
+          color="linear-gradient(to right, #10b981, #059669)"
           initialPosition={0.08}
-          crawlSpeed={200}
-          height={2}
+          crawlSpeed={150}
+          height={3}
           crawl={true}
-          showSpinner={false}
+          showSpinner={true}
           easing="ease"
-          speed={200}
+          speed={150}
+          shadow="0 0 10px #10b981,0 0 5px #10b981"
         />
         <Providers>{children}</Providers>
       </body>

@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const page = searchParams.get("page") || "1";
   const limit = searchParams.get("limit") || "10";
 
-  console.log("From Server Endpoint: ", { searchParams, page, limit });
+  // console.log("From Server Endpoint: ", { searchParams, page, limit });
 
   try {
     const response = await fetch(`${apiUrl}/a******it?page=${page}&limit=${limit}`, {

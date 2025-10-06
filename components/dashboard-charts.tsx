@@ -65,6 +65,7 @@ const PIE_DATA = [
 ];
 
 // Colors for the pie chart
+const LIGHT_COLORAS = ["#0e4430", "#564ef4ff", "#5aed5f", "#8af28c", "#b5f7b6"];
 const LIGHT_COLORS = ["#0e4430", "#19d21f", "#5aed5f", "#8af28c", "#b5f7b6"];
 const DARK_COLORS = ["#19d21f", "#0e4430", "#5aed5f", "#8af28c", "#b5f7b6"];
 

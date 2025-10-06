@@ -12,11 +12,11 @@ export async function PATCH(req: NextRequest) {
   }
 
   const payload = await req.json();
-  console.log("✅ Payload received in Next.js route:", JSON.stringify(payload, null, 2));
+  // console.log("✅ Payload received in Next.js route:", JSON.stringify(payload, null, 2));
 
   try {
     const fullUrl = `${apiUrl}/member/approve/member`;
-    console.log("➡️ Calling backend:", fullUrl);
+    // console.log("➡️ Calling backend:", fullUrl);
 
     const response = await fetch(fullUrl, {
       method: "PATCH",
@@ -29,7 +29,7 @@ export async function PATCH(req: NextRequest) {
 
     const contentType = response.headers.get("content-type");
     const rawText = await response.text();
-    console.log("⬅️ Backend raw response:", rawText);
+    // console.log("⬅️ Backend raw response:", rawText);
 
     let data;
     if (contentType && contentType.includes("application/json")) {
@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json(data, { status: response.status });
     }
 
-    console.log("✅ Backend returned success:", data);
+    // console.log("✅ Backend returned success:", data);
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {
     console.error("❌ Next.js route error:", error);

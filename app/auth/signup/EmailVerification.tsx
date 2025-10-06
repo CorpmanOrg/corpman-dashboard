@@ -15,10 +15,10 @@ const EmailVerification = ({ formik }: EmailProps) => {
   const {mutate: resendEmail, isPending} = useMutation({
     mutationFn: resendEmailFn,
     onSuccess: (data) => {
-      console.log("From Resend Email Onsuccess: ", data)
+      // console.log("From Resend Email Onsuccess: ", data)
     },
     onError: (error: AxiosError) => {
-      console.log("From Resend Onerror: ", error)
+      // console.log("From Resend Onerror: ", error)
     }
   })
 

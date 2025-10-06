@@ -1,5 +1,3 @@
-// src/utils/handleApiError.ts
-
 interface ApiError {
   response?: {
     status?: number;
