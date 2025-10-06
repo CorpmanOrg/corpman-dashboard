@@ -19,6 +19,7 @@ import MemberContributionForm from "@/components/Contributions/MemberContributio
 import RecentActivities from "@/components/RecentActivities/RecentActivities";
 
 export type MemberWithActions = Member & { ActionButton: string };
+type MembersRow = MemberWithActions & { sn: number };
 
 export default function MembersPage() {
   const { modal, openModal, closeModal } = useModal();
@@ -102,9 +103,10 @@ export default function MembersPage() {
   const dummyApiResponse = getPaginatedDummyData(page, rowsPerPage);
 
   const select = (data: any) => {
-    const transform = data?.data?.map((itm: any) => ({
+    const transform = data?.data?.map((itm: any, idx: number) => ({
       ...itm,
-      action: "ActionButton",
+      sn: page * rowsPerPage + idx + 1,
+      ActionButton: "ActionButton",
     }));
     const totalCount = data?.totalRecords;
     const pagesCount = data?.totalPages;
@@ -261,8 +263,8 @@ export default function MembersPage() {
                 <MemberContributionForm
                   moduleType="contribution"
                   // onSubmit={(payload) => {
-                    // handle form submission here
-                    // console.log("Submitted payload:", payload);
+                  // handle form submission here
+                  // console.log("Submitted payload:", payload);
                   // }}
                 />
               </div>
@@ -290,7 +292,7 @@ export default function MembersPage() {
         </Card>
       )}
 
-      <BaseTable<MemberWithActions>
+      <BaseTable<MembersRow>
         // rows={myData || []}
         rows={transform || []}
         columns={Dummy_Memebers_Column}
