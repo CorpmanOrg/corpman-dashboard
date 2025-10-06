@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
@@ -67,7 +67,25 @@ function ReceiptViewer({ path }: { path: string }) {
   );
 }
 
-export default function ContributionsPaymentsPage() {
+// Loading component for Suspense
+function PageLoading() {
+  return (
+    <div className="p-6">
+      <div className="animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+        <div className="h-96 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+// Main component that uses useSearchParams
+function ContributionsPaymentsContent() {
   const { modal, openModal, closeModal } = useModal();
   const { selectedOrganization, currentOrgId, currentRole } = useAuth();
   const queryClient = useQueryClient();
@@ -538,5 +556,14 @@ export default function ContributionsPaymentsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Main export with Suspense wrapper
+export default function ContributionsPaymentsPage() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <ContributionsPaymentsContent />
+    </Suspense>
   );
 }
