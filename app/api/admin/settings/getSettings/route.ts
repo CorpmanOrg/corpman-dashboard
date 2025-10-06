@@ -10,10 +10,7 @@ export async function GET(req: NextRequest) {
     const token = cookieStore.get("myUserToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Authentication token missing" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication token missing" }, { status: 401 });
     }
 
     // 2. Read query params from incoming request
@@ -21,26 +18,20 @@ export async function GET(req: NextRequest) {
     const orgId = searchParams.get("orgId") || "";
 
     // 3. Make backend call
-    const response = await fetch(
-      `${apiUrl}/api/v1/organizations/${orgId}/settings`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // attach token
-        },
-      }
-    );
+    const response = await fetch(`${apiUrl}/api/v1/organizations/${orgId}/settings`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // attach token
+      },
+    });
 
     // 4. Parse backend response safely
     let data;
     try {
       data = await response.json();
     } catch {
-      return NextResponse.json(
-        { error: "Backend did not return valid JSON" },
-        { status: response.status || 502 }
-      );
+      return NextResponse.json({ error: "Backend did not return valid JSON" }, { status: response.status || 502 });
     }
 
     // 5. Handle backend error response
@@ -58,9 +49,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {
     // 7. Network / unexpected errors
-    return NextResponse.json(
-      { error: "Failed to reach backend service", details: error.message },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: "Failed to reach backend service", details: error.message }, { status: 502 });
   }
 }

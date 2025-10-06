@@ -16,10 +16,7 @@ export async function POST(req: NextRequest) {
     try {
       data = await response.json();
     } catch {
-      return NextResponse.json(
-        { error: "Backend did not return valid JSON" },
-        { status: response.status }
-      );
+      return NextResponse.json({ error: "Backend did not return valid JSON" }, { status: response.status });
     }
 
     // Handle error responses from backend
@@ -33,10 +30,7 @@ export async function POST(req: NextRequest) {
     // Check token
     const token = data?.token;
     if (!token) {
-      return NextResponse.json(
-        { error: "Token missing in response" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Token missing in response" }, { status: 500 });
     }
 
     // Success → set cookie

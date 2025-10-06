@@ -9,10 +9,7 @@ export async function PATCH(req: Request) {
     const token = cookieStore.get("myUserToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Authentication token missing, logout and login back" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication token missing, logout and login back" }, { status: 401 });
     }
 
     // Extract payload from client request
@@ -20,42 +17,30 @@ export async function PATCH(req: Request) {
     const { id, action, rejectionReason } = body;
 
     if (!id || !action) {
-      return NextResponse.json(
-        { error: "Missing required fields (id, action)" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields (id, action)" }, { status: 400 });
     }
 
     // Proxy call to backend
-    const res = await fetch(
-      `${url}/payment/${id}/approve`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action,
-          rejectionReason,
-        }),
-      }
-    );
+    const res = await fetch(`${url}/payment/${id}/approve`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action,
+        rejectionReason,
+      }),
+    });
 
     if (!res.ok) {
       const errorData = await res.json();
-      return NextResponse.json(
-        { error: errorData?.message || "Failed to update payment" },
-        { status: res.status }
-      );
+      return NextResponse.json({ error: errorData?.message || "Failed to update payment" }, { status: res.status });
     }
 
     const data = await res.json();
     return NextResponse.json(data, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Unexpected error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || "Unexpected error" }, { status: 500 });
   }
 }

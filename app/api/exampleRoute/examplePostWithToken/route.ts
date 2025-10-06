@@ -10,10 +10,7 @@ export async function POST(req: NextRequest) {
     const token = cookieStore.get("myUserToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Authentication token missing" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication token missing" }, { status: 401 });
     }
 
     // 2. Parse the incoming request body
@@ -34,10 +31,7 @@ export async function POST(req: NextRequest) {
     try {
       data = await response.json();
     } catch {
-      return NextResponse.json(
-        { error: "Backend did not return valid JSON" },
-        { status: response.status || 502 }
-      );
+      return NextResponse.json({ error: "Backend did not return valid JSON" }, { status: response.status || 502 });
     }
 
     // 5. Handle backend error response
@@ -55,9 +49,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {
     // 7. Network / unexpected errors
-    return NextResponse.json(
-      { error: "Failed to reach backend service", details: error.message },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: "Failed to reach backend service", details: error.message }, { status: 502 });
   }
 }

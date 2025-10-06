@@ -18,10 +18,7 @@ export async function POST(req: NextRequest) {
     try {
       data = await response.json();
     } catch {
-      return NextResponse.json(
-        { error: "Backend did not return valid JSON" },
-        { status: response.status || 502 }
-      );
+      return NextResponse.json({ error: "Backend did not return valid JSON" }, { status: response.status || 502 });
     }
 
     if (!response.ok) {
@@ -33,9 +30,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: "Failed to reach backend service", details: error.message },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: "Failed to reach backend service", details: error.message }, { status: 502 });
   }
 }

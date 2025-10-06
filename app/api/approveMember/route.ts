@@ -36,10 +36,7 @@ export async function PATCH(req: NextRequest) {
       data = JSON.parse(rawText);
     } else {
       console.error("❌ Backend did not return JSON");
-      return NextResponse.json(
-        { error: "Backend did not return JSON", details: rawText },
-        { status: response.status }
-      );
+      return NextResponse.json({ error: "Backend did not return JSON", details: rawText }, { status: response.status });
     }
 
     if (!response.ok) {
@@ -54,4 +51,3 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Internal server error from frontend" }, { status: 500 });
   }
 }
-
