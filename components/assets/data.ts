@@ -17,6 +17,9 @@ import { Column } from "@/types/types";
 import { StatementWithActions } from "@/app/admin/records/statement/page";
 import React from "react";
 
+// Re-export types for other pages to use
+export type { StatementWithActions };
+
 export const SignUpInitialValues: SignUpFormValues = {
   name: "",
   email: "",

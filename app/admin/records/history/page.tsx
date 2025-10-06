@@ -13,34 +13,7 @@ import { useModal } from "@/context/ModalContext";
 import Toastbar from "@/components/Toastbar";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
-
-export type StatementWithActions = Statement & { ActionButton: string };
-
-export const Dummy_Statements_Column: Column<StatementWithActions>[] = [
-  { id: "name", label: "Name", minWidth: 100 },
-  { id: "amount", label: "Amount", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
-  {
-    id: "type",
-    label: "Type",
-    minWidth: 80,
-    format: (v) => (
-      <span
-        className={
-          `inline-block px-4 py-1 rounded-xl font-semibold text-[0.95rem] border ` +
-          (v === "credit"
-            ? "bg-[#e6f9ed] text-[#166534] border-[#b6f2d7] dark:bg-green-900/40 dark:text-green-200 dark:border-green-700"
-            : "bg-[#fdeaea] text-[#991b1b] border-[#f5c2c7] dark:bg-red-900/40 dark:text-red-200 dark:border-red-700")
-        }
-      >
-        {v === "credit" ? "Credit" : "Debit"}
-      </span>
-    ),
-  },
-  { id: "balance", label: "Balance", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
-  { id: "description", label: "Description", minWidth: 180 },
-  { id: "date", label: "Date", minWidth: 120, format: (v) => new Date(v).toLocaleDateString() },
-  { id: "ActionButton", label: "Actions", align: "center", minWidth: 120 },
-];
+import { StatementWithActions, Dummy_Statements_Column } from "@/components/assets/data";
 
 const statementActionOptions: TableActionOption[] = [
   { key: "view", label: "View Statement" },
