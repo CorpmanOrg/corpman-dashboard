@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { fetchStatements } from "@/utils/ApiFactory/statement";
-import { Statement, TableActionOption, ToastSeverity, ToastState } from "@/types/types";
+import { Statement, TableActionOption, ToastSeverity, ToastState, StatementWithActions } from "@/types/types";
 import { StatCard } from "@/components/Statistics/StatCard";
 import { StatementFilterBar, StatementFilterProps } from "@/components/Filters/StatementFilterBar";
 import BaseTable, { Column } from "@/components/BaseTable";
@@ -14,13 +14,13 @@ import { useModal } from "@/context/ModalContext";
 import Toastbar from "@/components/Toastbar";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
+import { Dummy_Statements_Column } from "@/components/assets/data";
 
 // Transaction type filter type
 type TransactionTypeFilter = "savings" | "contributions" | "loans" | "all";
 
-export type StatementWithActions = Statement & { ActionButton: string };
-
-export const Dummy_Statements_Column: Column<StatementWithActions>[] = [
+// Styled column definition with proper colors for statement page
+const StyledStatementsColumn: Column<StatementWithActions>[] = [
   { id: "name", label: "Name", minWidth: 100 },
   { id: "amount", label: "Amount", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
   {
@@ -522,7 +522,7 @@ export default function StatementPage() {
 
       <BaseTable
         rows={data.data}
-        columns={Dummy_Statements_Column}
+        columns={StyledStatementsColumn}
         page={page}
         setPage={setPage}
         rowsPerPage={rowsPerPage}

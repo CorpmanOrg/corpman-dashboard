@@ -126,6 +126,10 @@ export type TData = MembersApiResponse;
 
 export type MembersQueryKey = ["fetch-members-by-admin", string | undefined, number, number, string | undefined];
 
+export type StatementWithActions = Statement & { ActionButton: string };
+
+export type MemberWithActions = Member & { ActionButton: string };
+
 export type ToastbarProps = {
   open: boolean;
   message: string;

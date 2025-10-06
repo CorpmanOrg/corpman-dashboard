@@ -13,6 +13,7 @@ import {
   TableActionOption,
   ApproveRejectPayload,
   ApproveRejectResponse,
+  MemberWithActions,
 } from "@/types/types";
 import { getAllMembersFn, approveOrRejectMembersFn, getSingleMemberFn } from "@/utils/ApiFactory/admin";
 import { StatCardOpposite } from "@/components/Statistics/StatCard";
@@ -26,7 +27,6 @@ import { ActivityPieMiniChart } from "@/components/dashboard-charts";
 import MemberContributionForm from "@/components/Contributions/MemberContributionForm";
 import RecentActivities from "@/components/RecentActivities/RecentActivities";
 
-export type MemberWithActions = Member & { ActionButton: string };
 type MembersRow = MemberWithActions & { sn: number; ActionButton: string; id: string };
 
 export default function MembersPage() {

@@ -8,17 +8,14 @@ import {
   withdrawal,
   PaymentDataProps,
   Member,
+  StatementWithActions,
+  MemberWithActions,
 } from "@/types/types";
 import { Home, Users, DollarSign, FileText, Settings, LogOut } from "lucide-react";
 import {} from "@/types/types";
 
-import { MemberWithActions } from "@/app/admin/peopleManagement/members/page";
 import { Column } from "@/types/types";
-import { StatementWithActions } from "@/app/admin/records/statement/page";
 import React from "react";
-
-// Re-export types for other pages to use
-export type { StatementWithActions };
 
 export const SignUpInitialValues: SignUpFormValues = {
   name: "",
@@ -776,12 +773,15 @@ export const dummyMembers: Member[] = [
   },
 ];
 
+// Basic column definition for statements (styling will be in the component files)
 export const Dummy_Statements_Column: Column<StatementWithActions>[] = [
-  { id: "date", label: "Date", minWidth: 120, format: (v) => new Date(v).toLocaleDateString() },
-  { id: "description", label: "Description", minWidth: 180 },
-  { id: "type", label: "Type", minWidth: 80 },
+  { id: "name", label: "Name", minWidth: 100 },
   { id: "amount", label: "Amount", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
+  { id: "transactionType", label: "Category", minWidth: 100 },
+  { id: "type", label: "Type", minWidth: 80 },
   { id: "balance", label: "Balance", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
+  { id: "description", label: "Description", minWidth: 180 },
+  { id: "date", label: "Date", minWidth: 120, format: (v) => new Date(v).toLocaleDateString() },
   { id: "ActionButton", label: "Actions", align: "center", minWidth: 120 },
 ];
 

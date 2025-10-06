@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
 import { Dummy_Memebers_Column, dummyMembers } from "@/components/assets/data";
-import { Member, TError, ToastSeverity, ToastState, TableActionOption } from "@/types/types";
+import { Member, TError, ToastSeverity, ToastState, TableActionOption, MemberWithActions } from "@/types/types";
 import { getAllMembersFn, approveOrRejectMembersFn } from "@/utils/ApiFactory/admin";
 import { StatCardOpposite } from "@/components/Statistics/StatCard";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
@@ -18,7 +18,6 @@ import { ActivityPieMiniChart } from "@/components/dashboard-charts";
 import MemberContributionForm from "@/components/Contributions/MemberContributionForm";
 import RecentActivities from "@/components/RecentActivities/RecentActivities";
 
-export type MemberWithActions = Member & { ActionButton: string };
 type MembersRow = MemberWithActions & { sn: number };
 
 export default function MembersPage() {
