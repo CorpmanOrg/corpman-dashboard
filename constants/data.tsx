@@ -6,14 +6,14 @@ export const SidebarMenuInit: SideMenuModules[] = [
     type: "item",
     label: "Dashboard",
     href: "/admin/dashboard",
-    icon: <Home />,
+    icon: <Home className="w-5 h-5" />,
     key: "dashboard",
   },
   {
     type: "category",
     label: "People Management",
     href: "/admin/peopleManagement",
-    icon: <Users />,
+    icon: <Users className="w-5 h-5" />,
     key: "people",
     children: [
       { label: "All Corperative", chref: "/admin/peopleManagement/allCorporative", key: "allCorporative" },
@@ -25,7 +25,7 @@ export const SidebarMenuInit: SideMenuModules[] = [
     type: "category",
     label: "Financials",
     href: "/admin/financials",
-    icon: <DollarSign />,
+    icon: <DollarSign className="w-5 h-5" />,
     key: "financials",
     children: [
       { label: "Payments", chref: "/admin/financials/contributions", key: "payments" },
@@ -42,7 +42,7 @@ export const SidebarMenuInit: SideMenuModules[] = [
     type: "category",
     label: "Records",
     href: "/admin/records",
-    icon: <FileText />,
+    icon: <FileText className="w-5 h-5" />,
     key: "records",
     children: [
       { label: "Statement", chref: "/admin/records/statement", key: "statement" },
@@ -57,28 +57,28 @@ export const SidebarMenuInit: SideMenuModules[] = [
     type: "item",
     label: "Settings",
     href: "/admin/settings",
-    icon: <Settings />,
+    icon: <Settings className="w-5 h-5" />,
     key: "settings",
   },
   {
     type: "item",
     label: "Audit Logs",
     href: "/admin/auditLogs",
-    icon: <EarthLock />,
+    icon: <EarthLock className="w-5 h-5" />,
     key: "audit",
-  }
+  },
 ];
 
 export const MainStatCard = [
   {
     title: "Members",
     value: "1,250",
-    icon: <Users />,
+    icon: <Users className="w-5 h-5" />,
   },
   {
     title: "Contributions / Savings",
     value: "150 / 45",
-    icon: <DollarSign />,
+    icon: <DollarSign className="w-5 h-5" />,
   },
   // {
   //   title: "Savings",
@@ -88,6 +88,6 @@ export const MainStatCard = [
   {
     title: "Loans",
     value: "4560",
-    icon: <CreditCard />,
+    icon: <CreditCard className="w-5 h-5" />,
   },
 ];

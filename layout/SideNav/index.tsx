@@ -48,7 +48,7 @@ function SidebarCategory({ icon, label, href, isCollapsed, isExpanded, onToggle,
       // href={href}
     >
       <div className="flex items-center">
-        <div className="flex items-center justify-center p-2 w-6 h-6">{icon}</div>
+        <div className="flex items-center justify-center p-1 w-8 h-8">{icon}</div>
         {!isCollapsed && <span className="ml-3 font-medium">{label}</span>}
       </div>
       {!isCollapsed && <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />}
@@ -104,7 +104,7 @@ function SidebarItem({ icon, label, href, isCollapsed, isActive = false, onClick
       onClick={onClick}
       href={href}
     >
-      <div className="flex items-center justify-center p-2 w-6 h-6">{icon}</div>
+      <div className="flex items-center justify-center p-1 w-8 h-8">{icon}</div>
       {!isCollapsed && <span className="ml-3">{label}</span>}
     </Link>
   );
@@ -148,22 +148,22 @@ export function SideNav() {
     }
     if (item.type === "category") {
       if (item.key === "people") {
-        item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["members"].includes(c.key)
+        item.children = item.children?.filter(
+          (c: (typeof item.children)[number]) => ["members"].includes(c.key)
           // ["members", "dispute"].includes(c.key)
         );
         return true;
       }
       if (item.key === "financials") {
-        item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["payments"].includes(c.key)
+        item.children = item.children?.filter(
+          (c: (typeof item.children)[number]) => ["payments"].includes(c.key)
           // ["payments", "investments", "welfare"].includes(c.key)
         );
         return true;
       }
       if (item.key === "records") {
-        item.children = item.children?.filter((c: (typeof item.children)[number]) =>
-          ["statement", "profile"].includes(c.key)
+        item.children = item.children?.filter(
+          (c: (typeof item.children)[number]) => ["statement", "profile"].includes(c.key)
           // ["statement", "reporting", "minutes", "profile"].includes(c.key)
         );
         return true;
