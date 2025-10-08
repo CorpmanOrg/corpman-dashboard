@@ -12,22 +12,24 @@ type MemberContributionFormProps = {
   moduleType?: "savings" | "contribution" | "loan" | "statement" | "updateProfile" | "disputeResolution";
   onSubmit?: (payload: any) => void;
   resetSignal?: number; // 👈 new prop to trigger form reset
+  isLoading?: boolean; // 👈 external loading state control
 };
 
 const MemberContributionForm = ({
   moduleType = "contribution",
   onSubmit = () => {},
   resetSignal = 0, // 👈 default value
+  isLoading = false, // 👈 external loading control
 }: MemberContributionFormProps) => {
   const [activeTab, setActiveTab] = useState("Deposit");
 
   const getTransactionType = (moduleType: string, activeTab: string) => {
-  if (moduleType === "loan") {
-    if (activeTab === "Deposit") return "loan";
-    if (activeTab === "Withdrawal") return "loan_repayment";
-  }
-  return `${moduleType}_${activeTab.toLowerCase()}`;
-};
+    if (moduleType === "loan") {
+      if (activeTab === "Deposit") return "loan";
+      if (activeTab === "Withdrawal") return "loan_repayment";
+    }
+    return `${moduleType}_${activeTab.toLowerCase()}`;
+  };
 
   const formik = useFormik({
     initialValues: activeTab === "Deposit" ? depositInitialValues : withdrawalInitialValues,
@@ -58,6 +60,13 @@ const MemberContributionForm = ({
       });
     }
   }, [resetSignal]);
+
+  // Reset submitting state when external loading changes
+  useEffect(() => {
+    if (!isLoading && formik.isSubmitting) {
+      formik.setSubmitting(false);
+    }
+  }, [isLoading]);
 
   // console.log("MemberContributionForm User & Role: ", { formik });
 
@@ -122,8 +131,8 @@ const MemberContributionForm = ({
             {/* You can add more fields for withdrawal if needed */}
           </div>
         )}
-        <Button type="submit" className="mt-6 w-full" disabled={formik.isSubmitting || !formik.isValid}>
-          {formik.isSubmitting
+        <Button type="submit" className="mt-6 w-full" disabled={isLoading || formik.isSubmitting || !formik.isValid}>
+          {isLoading || formik.isSubmitting
             ? moduleType === "loan"
               ? "Processing..."
               : "Submitting..."

@@ -250,6 +250,7 @@ function ContributionsPaymentsContent() {
     // 🔹 Always refetch from server (ensures totals are correct)
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-balance"] });
     },
   });
 
@@ -275,27 +276,12 @@ function ContributionsPaymentsContent() {
 
   const STATUS_OPTIONS: PaymentStatusFilter[] = ["pending", "approved", "rejected", "all"];
 
-  // Get payment counts by status for enhanced filter UI
-  const getStatusCounts = () => {
-    const allPayments = paymentsResp?.payments || [];
-    const counts = {
-      pending: allPayments.filter((p) => p.status === "pending").length,
-      approved: allPayments.filter((p) => p.status === "approved").length,
-      rejected: allPayments.filter((p) => p.status === "rejected").length,
-      all: allPayments.length,
-    };
-    return counts;
-  };
-
-  const statusCounts = getStatusCounts();
-
   const renderStatusFilter = () => (
     <div className="mb-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Filter by Payment Status</h3>
       <div className="flex flex-wrap gap-3">
         {STATUS_OPTIONS.map((opt) => {
           const active = statusFilter === opt;
-          const count = statusCounts[opt] || 0;
           const disabled = (opt === "all" && statusFilter !== "all" && false) || isLoading; // keep logic placeholder if need disabling
 
           const getIcon = () => {
@@ -345,24 +331,10 @@ function ContributionsPaymentsContent() {
             >
               {getIcon()}
               <span className="capitalize">{opt}</span>
-              <span
-                className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                  active ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-                }`}
-              >
-                {count}
-              </span>
             </button>
           );
         })}
       </div>
-      {statusFilter !== "all" && (
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Showing{" "}
-          <span className="font-semibold text-green-600 dark:text-green-400">{statusCounts[statusFilter] || 0}</span>{" "}
-          {statusFilter} payments
-        </p>
-      )}
     </div>
   );
 

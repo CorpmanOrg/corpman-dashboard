@@ -33,7 +33,7 @@ const RadioInput: React.FC<RadioInputProps> = ({
           disabled={disabled}
           className="cursor-pointer h-5 w-5 appearance-none border-2 border-gray-400 rounded-full checked:bg-green-400 checked:border-gray-800 hover:border-gray-800 transition-all duration-200"
         />
-        <span className="ml-2 text-sm text-black">{label}</span>
+        <span className="ml-2 text-sm text-black dark:text-white">{label}</span>
       </label>
       {touched && error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>

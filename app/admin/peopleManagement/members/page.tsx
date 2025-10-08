@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
 import { Dummy_Memebers_Column } from "@/components/assets/data";
@@ -32,6 +32,7 @@ type MembersRow = MemberWithActions & { sn: number; ActionButton: string; id: st
 export default function MembersPage() {
   const { modal, openModal, closeModal } = useModal();
   const { user, currentRole, currentOrgId } = useAuth();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const status: string = "";
@@ -114,8 +115,8 @@ export default function MembersPage() {
       // console.log("✅ Approve/Reject success:", data);
       showToast("success", data?.message || "Action successful!");
       closeModal();
-      // Optionally refetch members here
-      // queryClient.invalidateQueries(["members"]);
+      // Invalidate and refetch members data
+      queryClient.invalidateQueries({ queryKey: ["fetch-members-by-admin"] });
     },
     onError: (error) => {
       console.error("❌ Approve/Reject error:", error);
