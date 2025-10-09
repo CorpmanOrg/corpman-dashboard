@@ -19,6 +19,90 @@
 // "email": "samson.palmer@unilever.com",
 //   "password": "securePassword123",
 
+// "email": "rachael.agonma@success.com",
+//   "password": "securePassword123",
+
+// "password": "securePassword123",
+// "email": "utinime.jacuma@blessing.com",
+
+// "email": "funmi.elizabeth@sandi.com",
+//   "password": "securePassword123",
+
+//  "email": "feli@anton.com",
+//   "password": "securePassword123",
+
+// "email": "nema@anton.com",
+//   "password": "securePassword123",
+
+// "email": "namin@anton.com",
+//   "password": "securePassword123",
+
+//  "email": "azees@anton.com",
+//   "password": "securePassword123",
+
+// "email": "nimasa@anton.com",
+//   "password": "securePassword123",
+
+// "email": "tona@anton.com",
+//   "password": "securePassword123",
+
+// "email": "fela@anton.com",
+//   "password": "securePassword123",
+
+// "email": "hexsei@anton.com",
+//   "password": "securePassword123",
+
+// "email": "seuae@anton.com",
+//   "password": "securePassword123",
+
+// "email": "fumSho@anton.com",
+//   "password": "securePassword123",
+
+// "email": "nnamdi@anton.com",
+//   "password": "securePassword123",
+
+// "email": "rota@anton.com",
+//   "password": "securePassword123",
+
+// "email": "ruthDol@anton.com",
+//   "password": "securePassword123",
+
+// "email": "deiriut@anton.com",
+//   "password": "securePassword123",
+
+// "email": "eurn@anton.com",
+//   "password": "securePassword123",
+
+// "email": "rukka@anton.com",
+//   "password": "securePassword123",
+
+//  "email": "gorj@anton.com",
+//   "password": "securePassword123",
+
+//  "email": "gorj@anton.com",
+//   "password": "securePassword123",
+
+// "email": "loeRna@anton.com",
+//   "password": "securePassword123",
+
+// "email": "liksu@anton.com",
+//     "password": "securePassword123",
+
+// "email": "Uitom@anton.com",
+//     "password": "securePassword123",
+
+// "email": "flehmn@anton.com",
+//     "password": "securePassword123",
+
+// "email": "argos-flen@anton.com",
+//     "password": "securePassword123",
+
+// "email": "sonami@anton.com",
+//     "password": "securePassword123",
+
+
+
+
 // Environment Variables, API Calls & CORS, next.config.js, TypeScript Config, App Directory / Routing, Dependencies, Build Check, Styling / Responsiveness, Error Handling & Vercel Specific.
 
 const newDt = {
@@ -104,3 +188,11 @@ const newDt = {
   totalPages: 1,
   totalItems: 4,
 };
+
+const tk1 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGU3M2M3MGY1Y2ZhZjA4NDU5YmNjMmEiLCJlbWFpbCI6Im5lbWFAYW50b24uY29tIiwiaWF0IjoxNzU5OTkyMjUzLCJleHAiOjE3NjA1OTcwNTN9.oXdeZ63pc9A2P-6cgb_Zyd5NiTBkq7HtSDTiClsHaVw"
+
+const tk11 = "myUserToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGU3M2M3MGY1Y2ZhZjA4NDU5YmNjMmEiLCJlbWFpbCI6Im5lbWFAYW50b24uY29tIiwiaWF0IjoxNzU5OTkyMjUzLCJleHAiOjE3NjA1OTcwNTN9.oXdeZ63pc9A2P-6cgb_Zyd5NiTBkq7HtSDTiClsHaVw"
+
+const tk2 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGU3M2M3MGY1Y2ZhZjA4NDU5YmNjMmEiLCJlbWFpbCI6Im5lbWFAYW50b24uY29tIiwiaWF0IjoxNzU5OTkyMjUzLCJleHAiOjE3NjA1OTcwNTN9.oXdeZ63pc9A2P-6cgb_Zyd5NiTBkq7HtSDTiClsHaVw"
+
+const tk22 = "myUserToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGU3M2M3MGY1Y2ZhZjA4NDU5YmNjMmEiLCJlbWFpbCI6Im5lbWFAYW50b24uY29tIiwiaWF0IjoxNzU5OTkyMjUzLCJleHAiOjE3NjA1OTcwNTN9.oXdeZ63pc9A2P-6cgb_Zyd5NiTBkq7HtSDTiClsHaVw"

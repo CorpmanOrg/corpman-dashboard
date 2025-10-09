@@ -42,6 +42,7 @@ export interface BaseTableProps<T> {
   showCheckbox?: boolean;
   checkboxOnChange?: (row: T | T[], action?: "select-all" | "clear-all") => void;
   selectedRows?: (string | number)[];
+  isRowSelectable?: (row: T) => boolean; // New prop to determine if row is selectable
   genData?: "pdf" | "csv";
   rowName?: string;
   search?: string;
@@ -65,6 +66,7 @@ function BaseTable<T extends { id?: string | number }>({
   showCheckbox,
   checkboxOnChange,
   selectedRows = [],
+  isRowSelectable = () => true, // Default: all rows are selectable
   genData,
 }: BaseTableProps<T>) {
   const handlePageChange = (_: unknown, newPage: number) => {
@@ -115,11 +117,34 @@ function BaseTable<T extends { id?: string | number }>({
                     sx={{
                       color: "#33ef3fff",
                       "&.Mui-checked": { color: "#33ef3fff" },
+                      "&.MuiCheckbox-indeterminate": { color: "#33ef3fff" },
                       margin: "0 auto",
                       display: "block",
                     }}
-                    checked={rows.length > 0 && selectedRows.length === rows.length}
-                    onChange={(event) => checkboxOnChange?.(rows, event.target.checked ? "select-all" : "clear-all")}
+                    checked={(() => {
+                      // Only consider rows that are selectable
+                      const selectableRows = rows.filter((row) => row.id && isRowSelectable(row));
+                      if (selectableRows.length === 0) return false;
+
+                      const selectableRowIds = selectableRows.map((row) => row.id) as (string | number)[];
+                      const selectedOnCurrentPage = selectableRowIds.filter((id) => selectedRows.includes(id));
+                      return selectedOnCurrentPage.length === selectableRowIds.length;
+                    })()}
+                    indeterminate={(() => {
+                      // Only consider rows that are selectable
+                      const selectableRows = rows.filter((row) => row.id && isRowSelectable(row));
+                      if (selectableRows.length === 0) return false;
+
+                      const selectableRowIds = selectableRows.map((row) => row.id) as (string | number)[];
+                      const selectedOnCurrentPage = selectableRowIds.filter((id) => selectedRows.includes(id));
+                      return selectedOnCurrentPage.length > 0 && selectedOnCurrentPage.length < selectableRowIds.length;
+                    })()}
+                    onChange={(event) =>
+                      checkboxOnChange?.(
+                        rows.filter((row) => isRowSelectable(row)),
+                        event.target.checked ? "select-all" : "clear-all"
+                      )
+                    }
                   />
                 </TableCell>
               )}
@@ -202,8 +227,10 @@ function BaseTable<T extends { id?: string | number }>({
                         sx={{
                           color: "#33ef3fff",
                           "&.Mui-checked": { color: "#33ef3fff" },
+                          "&.Mui-disabled": { color: "#ccc" },
                         }}
                         checked={row.id ? selectedRows.includes(row.id) : false}
+                        disabled={!isRowSelectable(row)}
                         onChange={() => checkboxOnChange?.(row)}
                       />
                     </TableCell>

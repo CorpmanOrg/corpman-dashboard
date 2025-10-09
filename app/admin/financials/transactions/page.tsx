@@ -12,6 +12,7 @@ import { deposit, ErrorResponse, MakePaymentRes, ToastSeverity, ToastState, with
 export default function Transactions() {
   const [selectedType, setSelectedType] = useState<string>("");
   const [resetSignal, setResetSignal] = useState<number>(0);
+  const [errorResetSignal, setErrorResetSignal] = useState<number>(0); // 👈 Add error reset signal
 
   const [toast, setToast] = useState<ToastState>({
     open: false,
@@ -48,6 +49,7 @@ export default function Transactions() {
     onError: (err: any) => {
       // console.log("Transaction Error: ", err);
       showToast("error", err.message || "Transaction failed!");
+      setErrorResetSignal((prev) => prev + 1); // 👈 Trigger error reset
     },
   });
 
@@ -90,6 +92,8 @@ export default function Transactions() {
               moduleType={safeSelectedType}
               onSubmit={(payload) => mutation.mutate(payload)}
               resetSignal={resetSignal} // 👈 pass down
+              isLoading={mutation.isPending} // ✅ pass the mutation loading state
+              errorResetSignal={errorResetSignal} // 👈 pass error reset signal
             />
           </div>
         )}

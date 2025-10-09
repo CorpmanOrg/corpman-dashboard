@@ -21,8 +21,9 @@ import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 import Toastbar from "@/components/Toastbar";
 import BaseTable from "@/components/BaseTable";
-import { User, Users, Loader2, AlertCircle } from "lucide-react";
+import { User, Users, Loader2, AlertCircle, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ActivityPieMiniChart } from "@/components/dashboard-charts";
 import MemberContributionForm from "@/components/Contributions/MemberContributionForm";
 import RecentActivities from "@/components/RecentActivities/RecentActivities";
@@ -35,8 +36,36 @@ export default function MembersPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const status: string = "";
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+
+  // 🆕 Bulk selection state
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<"approve-reject" | "delete" | null>(null);
+
+  // Filter state
+  const [activeFilter, setActiveFilter] = useState<string>("all");
+
+  // Convert filter for API (API expects empty string for "all")
+  // Map "approved" filter to "active" status for API
+  const statusForApi = activeFilter === "all" ? "" : activeFilter === "approved" ? "active" : activeFilter;
+
+  // Dynamic selectability based on current bulk action
+  const isRowSelectable = (row: MembersRow) => {
+    if (!isBulkMode || !bulkActionType) return false;
+
+    switch (bulkActionType) {
+      case "approve-reject":
+        return row.status === "pending";
+      case "delete":
+        return row.status === "pending" || row.status === "active"; // Can delete pending and active
+      default:
+        return false;
+    }
+  }; // Reset page when filter changes
+  useEffect(() => {
+    setPage(0);
+  }, [activeFilter]);
 
   type BarDataType = { name: string; value: number };
 
@@ -98,13 +127,13 @@ export default function MembersPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, status],
+    queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, statusForApi],
     queryFn: () =>
       getAllMembersFn({
         orgId: currentOrgId!,
         page,
         limit: rowsPerPage,
-        status,
+        status: statusForApi,
       }),
     enabled: !!user?.user?._id,
   });
@@ -115,12 +144,49 @@ export default function MembersPage() {
       // console.log("✅ Approve/Reject success:", data);
       showToast("success", data?.message || "Action successful!");
       closeModal();
-      // Invalidate and refetch members data
+      // Reset bulk selection
+      setSelectedMemberIds([]);
+      setIsBulkMode(false);
+      // Invalidate and refetch members data with more aggressive invalidation
       queryClient.invalidateQueries({ queryKey: ["fetch-members-by-admin"] });
+      // Also refetch the current query to ensure immediate update
+      queryClient.refetchQueries({
+        queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, statusForApi],
+      });
     },
     onError: (error) => {
       console.error("❌ Approve/Reject error:", error);
       showToast("error", error.message || "Action failed!");
+    },
+  });
+
+  // 🆕 Bulk mutation for multiple members
+  const bulkMutation = useMutation<ApproveRejectResponse, Error, ApproveRejectPayload>({
+    mutationFn: approveOrRejectMembersFn,
+    onSuccess: (data) => {
+      const summary = data?.summary;
+      const successCount = summary?.updated?.length || 0;
+      const totalAttempted = selectedMemberIds.length;
+
+      if (successCount === totalAttempted) {
+        showToast("success", `Successfully processed ${successCount} members! ✅`);
+      } else {
+        showToast("warning", `Processed ${successCount}/${totalAttempted} members. Check summary for details.`);
+      }
+
+      closeModal();
+      setSelectedMemberIds([]);
+      setIsBulkMode(false);
+      // Invalidate and refetch members data with more aggressive invalidation
+      queryClient.invalidateQueries({ queryKey: ["fetch-members-by-admin"] });
+      // Also refetch the current query to ensure immediate update
+      queryClient.refetchQueries({
+        queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, statusForApi],
+      });
+    },
+    onError: (error) => {
+      console.error("❌ Bulk operation error:", error);
+      showToast("error", error.message || "Bulk operation failed!");
     },
   });
 
@@ -129,6 +195,75 @@ export default function MembersPage() {
       showToast("success", "Members fetched successfully ✅");
     }
   }, [isSuccess]);
+
+  // 🆕 Helper functions for bulk operations
+  const generateBulkPayload = (memberIds: string[], action: "approve" | "reject"): ApproveRejectPayload => {
+    return {
+      updates: memberIds.map((id) => ({
+        memberId: id,
+        status: action === "approve" ? "active" : "rejected",
+      })),
+    };
+  };
+
+  const handleBulkSelection = (rows: MembersRow | MembersRow[], action?: "select-all" | "clear-all") => {
+    if (action === "select-all" && Array.isArray(rows)) {
+      // Only select rows that are selectable for current action type
+      const selectableIds = rows.filter(isRowSelectable).map((row) => row.id);
+      setSelectedMemberIds((prev) => {
+        // Add current page selectable members to existing selections (handle multi-page selections)
+        const newSelections = [...new Set([...prev, ...selectableIds])];
+        return newSelections;
+      });
+    } else if (action === "clear-all") {
+      // Clear ALL selections (not just current page)
+      setSelectedMemberIds([]);
+    } else if (!Array.isArray(rows)) {
+      // Single row selection
+      const memberId = rows.id;
+      if (!isRowSelectable(rows)) {
+        // Don't allow selection of non-selectable members for current action
+        return;
+      }
+      setSelectedMemberIds((prev) => {
+        const newSelection = prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId];
+        return newSelection;
+      });
+    }
+  };
+
+  const handleBulkApprove = () => {
+    openModal("confirm", {
+      message: `Are you sure you want to approve ${selectedMemberIds.length} selected members?`,
+      onConfirm: () => {
+        const payload = generateBulkPayload(selectedMemberIds, "approve");
+        bulkMutation.mutate(payload);
+      },
+    });
+  };
+
+  const handleBulkReject = () => {
+    openModal("confirm", {
+      message: `Are you sure you want to reject ${selectedMemberIds.length} selected members?`,
+      onConfirm: () => {
+        const payload = generateBulkPayload(selectedMemberIds, "reject");
+        bulkMutation.mutate(payload);
+      },
+    });
+  };
+
+  const handleBulkDelete = () => {
+    openModal("confirm", {
+      message: `⚠️ WARNING: Are you sure you want to permanently delete ${selectedMemberIds.length} selected members? This action cannot be undone!`,
+      onConfirm: () => {
+        // TODO: Implement bulk delete API call
+        // For now, show a placeholder message
+        showToast("info", "Bulk delete functionality will be implemented soon!");
+        setSelectedMemberIds([]);
+        setIsBulkMode(false);
+      },
+    });
+  };
 
   useEffect(() => {
     if (isError && error) {
@@ -507,7 +642,7 @@ export default function MembersPage() {
         onClose={closeModal}
         onConfirm={modal.data?.onConfirm}
         message={modal.data?.message || ""}
-        loading={mutation.status === "pending"}
+        loading={mutation.status === "pending" || bulkMutation.status === "pending"}
       />
 
       <DetailsModal
@@ -547,18 +682,225 @@ export default function MembersPage() {
             </div>
           )}
 
+          {/* Header Row with title and controls */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-3xl font-bold">Members</h1>
+              {!MemberLoading && membersRows.length > 0 && (
+                <Button
+                  onClick={() => {
+                    if (isBulkMode) {
+                      // Exit bulk mode
+                      setIsBulkMode(false);
+                      setBulkActionType(null);
+                      setSelectedMemberIds([]);
+                    } else {
+                      // Enter bulk mode - show action selection
+                      setIsBulkMode(true);
+                      setBulkActionType("approve-reject"); // Default to approve-reject
+                    }
+                  }}
+                  variant={isBulkMode ? "destructive" : "outline"}
+                  size="sm"
+                >
+                  {isBulkMode ? (
+                    <>
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Exit Bulk Mode
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Bulk Actions
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {["all", "pending", "active", "rejected"].map((filter) => {
+                const active = activeFilter === filter;
+                const getIcon = () => {
+                  switch (filter) {
+                    case "pending":
+                      return <AlertCircle className="h-4 w-4" />;
+                    case "active":
+                      return <CheckCircle className="h-4 w-4" />;
+                    case "rejected":
+                      return <XCircle className="h-4 w-4" />;
+                    default:
+                      return <Users className="h-4 w-4" />;
+                  }
+                };
+                const getStatusColor = () => {
+                  switch (filter) {
+                    case "pending":
+                      return active
+                        ? "bg-amber-500 text-white border-amber-500"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-amber-50 dark:hover:bg-amber-900/20";
+                    case "approved":
+                      return active
+                        ? "bg-green-500 text-white border-green-500"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-green-900/20";
+                    case "rejected":
+                      return active
+                        ? "bg-red-500 text-white border-red-500"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/20";
+                    default:
+                      return active
+                        ? "bg-blue-500 text-white border-blue-500"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/20";
+                  }
+                };
+                return (
+                  <button
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${getStatusColor()}`}
+                  >
+                    {getIcon()}
+                    <span className="capitalize">{filter}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {!MemberLoading && !!membersRows.length && (
-            <BaseTable<MembersRow>
-              rows={membersRows || []}
-              columns={Dummy_Memebers_Column}
-              page={page}
-              setPage={setPage}
-              rowsPerPage={rowsPerPage}
-              setRowsPerPage={setRowsPerPage}
-              totalPage={totalCount ?? 0}
-              actionOptions={memberActionOptionsForRow}
-              actionItemOnClick={handleActionClick}
-            />
+            <>
+              {/* 🆕 Enhanced Bulk Action Toolbar */}
+              {isBulkMode && (
+                <div className="mb-4 space-y-4">
+                  {/* Action Type Selection */}
+                  <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                      Select Bulk Action Type:
+                    </h3>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setBulkActionType("approve-reject");
+                          setSelectedMemberIds([]); // Clear selections when switching modes
+                        }}
+                        variant={bulkActionType === "approve-reject" ? "default" : "outline"}
+                        size="sm"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Approve/Reject
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setBulkActionType("delete");
+                          setSelectedMemberIds([]); // Clear selections when switching modes
+                        }}
+                        variant={bulkActionType === "delete" ? "destructive" : "outline"}
+                        size="sm"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      {bulkActionType === "approve-reject"
+                        ? "Only pending members can be approved or rejected"
+                        : "Pending and active members can be deleted"}
+                    </p>
+                  </div>
+
+                  {/* Selection Status & Actions */}
+                  {selectedMemberIds.length > 0 && (
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-blue-600" />
+                          <span className="font-medium text-blue-900 dark:text-blue-100">
+                            {selectedMemberIds.length} member{selectedMemberIds.length > 1 ? "s" : ""} selected
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {bulkActionType === "approve-reject" && (
+                            <>
+                              <Button
+                                onClick={handleBulkApprove}
+                                disabled={bulkMutation.status === "pending"}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                size="sm"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve Selected
+                              </Button>
+                              <Button
+                                onClick={handleBulkReject}
+                                disabled={bulkMutation.status === "pending"}
+                                variant="destructive"
+                                size="sm"
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Reject Selected
+                              </Button>
+                            </>
+                          )}
+                          {bulkActionType === "delete" && (
+                            <Button
+                              onClick={handleBulkDelete}
+                              disabled={bulkMutation.status === "pending"}
+                              variant="destructive"
+                              size="sm"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Selected
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => {
+                              setSelectedMemberIds([]);
+                            }}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Clear Selection
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <BaseTable<MembersRow>
+                rows={membersRows || []}
+                columns={Dummy_Memebers_Column}
+                page={page}
+                setPage={setPage}
+                rowsPerPage={rowsPerPage}
+                setRowsPerPage={setRowsPerPage}
+                totalPage={totalCount ?? 0}
+                actionOptions={memberActionOptionsForRow}
+                actionItemOnClick={handleActionClick}
+                showCheckbox={isBulkMode} // Only show checkboxes when in bulk mode
+                selectedRows={selectedMemberIds}
+                checkboxOnChange={handleBulkSelection}
+                isRowSelectable={isRowSelectable}
+              />
+            </>
+          )}
+
+          {/* Empty State */}
+          {!MemberLoading && !membersRows.length && (
+            <Card className="p-8 text-center">
+              <CardContent className="space-y-4">
+                <Users className="h-16 w-16 mx-auto text-gray-400" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">No members found</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {activeFilter === "all"
+                      ? "There are no members in the system yet."
+                      : `No members with "${activeFilter}" status found.`}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       )}

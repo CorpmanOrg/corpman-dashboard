@@ -13,6 +13,7 @@ type MemberContributionFormProps = {
   onSubmit?: (payload: any) => void;
   resetSignal?: number; // 👈 new prop to trigger form reset
   isLoading?: boolean; // 👈 external loading state control
+  errorResetSignal?: number; // 👈 new prop to trigger error state reset
 };
 
 const MemberContributionForm = ({
@@ -20,6 +21,7 @@ const MemberContributionForm = ({
   onSubmit = () => {},
   resetSignal = 0, // 👈 default value
   isLoading = false, // 👈 external loading control
+  errorResetSignal = 0, // 👈 error reset signal
 }: MemberContributionFormProps) => {
   const [activeTab, setActiveTab] = useState("Deposit");
 
@@ -58,15 +60,23 @@ const MemberContributionForm = ({
       formik.resetForm({
         values: activeTab === "Deposit" ? depositInitialValues : withdrawalInitialValues,
       });
+      formik.setSubmitting(false); // Ensure submitting state is reset
     }
-  }, [resetSignal]);
+  }, [resetSignal, activeTab]); // 👈 Removed formik from dependency array
 
   // Reset submitting state when external loading changes
   useEffect(() => {
     if (!isLoading && formik.isSubmitting) {
       formik.setSubmitting(false);
     }
-  }, [isLoading]);
+  }, [isLoading]); // 👈 Removed formik from dependency array
+
+  // Handle error reset signal - reset submitting state on error
+  useEffect(() => {
+    if (errorResetSignal > 0) {
+      formik.setSubmitting(false);
+    }
+  }, [errorResetSignal]); // 👈 Removed formik from dependency array
 
   // console.log("MemberContributionForm User & Role: ", { formik });
 
