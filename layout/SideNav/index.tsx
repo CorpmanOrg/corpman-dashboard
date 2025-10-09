@@ -43,7 +43,7 @@ interface SidebarItemProps {
 function SidebarCategory({ icon, label, href, isCollapsed, isExpanded, onToggle, children }: SidebarCategoryProps) {
   const categoryHeader = (
     <div
-      className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors text-gray-700 dark:text-gray-100 hover: bg-green-50 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400`}
+      className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors text-gray-700 dark:text-gray-100 dark:hover:bg-green-900/20 hover:text-[#19d21f] dark:hover:text-green-400`}
       onClick={onToggle}
       // href={href}
     >
@@ -149,7 +149,7 @@ export function SideNav() {
     if (item.type === "category") {
       if (item.key === "people") {
         item.children = item.children?.filter(
-          (c: (typeof item.children)[number]) => ["members"].includes(c.key)
+          (c: (typeof item.children)[number]) => ["members", "createMembers"].includes(c.key)
           // ["members", "dispute"].includes(c.key)
         );
         return true;
@@ -192,6 +192,30 @@ export function SideNav() {
   });
 
   const menuToRender = currentRole === "org_admin" ? adminMenu : memberMenu;
+
+  // 🔥 FIX: Auto-detect active item based on pathname
+  useEffect(() => {
+    // Find the active item based on current pathname
+    let foundActiveItem = "dashboard"; // Default
+
+    menuToRender.forEach((item) => {
+      if (item.type === "item" && pathname === item.href) {
+        foundActiveItem = item.key;
+      } else if (item.type === "category" && item.children) {
+        item.children.forEach((child) => {
+          if (pathname === child.chref) {
+            foundActiveItem = child.key;
+            // Auto-expand parent category when child is active
+            setExpandedCategories((prev) =>
+              prev.includes(item.key as Category) ? prev : [...prev, item.key as Category]
+            );
+          }
+        });
+      }
+    });
+
+    setActiveItem(foundActiveItem);
+  }, [pathname, menuToRender]);
 
   const toggleCategory = (category: Category) => {
     setExpandedCategories((prevS) =>
@@ -236,6 +260,7 @@ export function SideNav() {
                     href={sideMenu.href}
                     isCollapsed={isSidebarCollapsed}
                     isActive={activeItem === sideMenu.key}
+                    onClick={() => setActiveItem(sideMenu.key)}
                   />
                 );
               }

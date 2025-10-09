@@ -75,33 +75,43 @@ export default function Dashboard() {
   const backgroundFetching = currentRole === "member" ? memberFetching && !!memberData : adminFetching && !!adminData;
 
   const memberStats = [
-    { title: "Savings", value: activeData?.balances?.savings ?? 0, icon: <PiggyBank />, loading: initialLoading },
+    {
+      title: "Savings",
+      value: `₦${(activeData?.balances?.savings ?? 0).toLocaleString()}`,
+      icon: <PiggyBank />,
+      loading: initialLoading,
+    },
     {
       title: "Contributions",
-      value: activeData?.balances?.contribution ?? 0,
+      value: `₦${(activeData?.balances?.contribution ?? 0).toLocaleString()}`,
       icon: <GitBranchPlus />,
       loading: initialLoading,
     },
-    { title: "Loans", value: activeData?.balances?.loans ?? 0, icon: <CreditCard />, loading: initialLoading },
+    {
+      title: "Loans",
+      value: `₦${(activeData?.balances?.loans ?? 0).toLocaleString()}`,
+      icon: <CreditCard />,
+      loading: initialLoading,
+    },
   ];
 
   const adminStats = [
     { title: "Members", value: activeData?.totalMembers ?? 0, icon: <Users />, loading: initialLoading },
     {
       title: "Savings",
-      value: activeData?.totalBalances?.totalSavings ?? 0,
+      value: `₦${(activeData?.totalBalances?.totalSavings ?? 0).toLocaleString()}`,
       icon: <PiggyBank />,
       loading: initialLoading,
     },
     {
       title: "Contributions",
-      value: activeData?.totalBalances?.totalContributions ?? 0,
+      value: `₦${(activeData?.totalBalances?.totalContributions ?? 0).toLocaleString()}`,
       icon: <GitBranchPlus />,
       loading: initialLoading,
     },
     {
       title: "Loans",
-      value: activeData?.totalBalances?.totalLoansIssued ?? 0,
+      value: `₦${(activeData?.totalBalances?.totalLoansIssued ?? 0).toLocaleString()}`,
       icon: <CreditCard />,
       loading: initialLoading,
     },
@@ -132,7 +142,7 @@ export default function Dashboard() {
             )}
             <MainStatisticsCard
               stats={(currentRole === "member" ? memberStats : adminStats) as any}
-              showActivityCard={!initialLoading}
+              showActivityCard={false}
               fetching={backgroundFetching}
             />
 

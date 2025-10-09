@@ -18,6 +18,7 @@ export const SidebarMenuInit: SideMenuModules[] = [
     children: [
       { label: "All Corperative", chref: "/admin/peopleManagement/allCorporative", key: "allCorporative" },
       { label: "Members", chref: "/admin/peopleManagement/members", key: "members" },
+      { label: "Create Members", chref: "/admin/peopleManagement/createMembers", key: "createMembers" },
       { label: "Dispute", chref: "/admin/peopleManagement/dispute", key: "dispute" },
     ],
   },

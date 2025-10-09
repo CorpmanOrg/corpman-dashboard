@@ -2,6 +2,10 @@ import {
   ApproveRejectPayload,
   ApproveRejectResponse,
   AssignRoleType,
+  CreateMemberPayload,
+  CreateMemberResponse,
+  CreateBulkMembersPayload,
+  CreateBulkMembersResponse,
   ErrorResponse,
   MemberParams,
   MembersApiResponse,
@@ -185,4 +189,39 @@ export const assignRoleFn = async (payload: AssignRoleType): Promise<ErrorRespon
 
 export const getOrganizationSettingsFn = async (email: string) => {
   // talk about this part with him
+};
+
+// 🆕 Create Members Functions
+export const createSingleMemberFn = async (payload: CreateMemberPayload): Promise<CreateMemberResponse> => {
+  const res = await fetch("/api/admin/createMembers", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "Failed to create member";
+    throw new Error(msg);
+  }
+  return data;
+};
+
+export const createBulkMembersFn = async (payload: CreateBulkMembersPayload): Promise<CreateBulkMembersResponse> => {
+  const res = await fetch("/api/admin/createMembers", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "Failed to create members";
+    throw new Error(msg);
+  }
+  return data;
 };

@@ -277,3 +277,52 @@ export type SettingsType = {
   savingsMaxDays: number;
   contributionMaxDays: number;
 };
+
+// 🆕 Create Members Types
+export type CreateMemberPayload = {
+  organizationId: string;
+  surname: string;
+  firstName: string;
+  middleName: string;
+  email: string;
+  password: string;
+  address: string;
+  dateOfBirth: string;
+  stateOfOrigin: string;
+  LGA: string;
+  maritalStatus: string;
+  residentialAddress: string;
+  mobileNumber: string;
+  employer: string;
+  annualIncome: number;
+  monthlyContribution: number;
+  nextOfKin: string;
+  nextOfKinRelationship: string;
+  nextOfKinAddress: string;
+};
+
+export type CreateMemberResponse = {
+  success: boolean;
+  message: string;
+  member?: Member;
+};
+
+export type CreateBulkMembersPayload = {
+  organizationId: string;
+  members: Omit<CreateMemberPayload, "organizationId">[];
+};
+
+export type CreateBulkMembersResponse = {
+  success: boolean;
+  message: string;
+  created?: Member[];
+  failed?: {
+    member: Omit<CreateMemberPayload, "organizationId">;
+    error: string;
+  }[];
+  summary?: {
+    total: number;
+    successful: number;
+    failed: number;
+  };
+};

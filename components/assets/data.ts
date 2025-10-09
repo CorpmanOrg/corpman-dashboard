@@ -139,7 +139,7 @@ export const MemberPaymentsData: Column<PaymentDataProps & { sn: number }>[] = [
       return fullName || v.email || v._id || "";
     },
   },
-  { id: "amount", label: "Amount", minWidth: 140 },
+  { id: "amount", label: "Amount", minWidth: 140, format: (v) => `₦${v.toLocaleString()}` },
   {
     id: "type",
     label: "Type",

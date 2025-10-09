@@ -140,19 +140,19 @@ function ContributionsPaymentsContent() {
   const adminOrgBalance = [
     {
       title: "Savings",
-      value: adminData?.totalBalances?.totalSavings ?? 0,
+      value: `₦${(adminData?.totalBalances?.totalSavings ?? 0).toLocaleString()}`,
       icon: <PiggyBank />,
       loading: adminLoading,
     },
     {
       title: "Contributions",
-      value: adminData?.totalBalances?.totalContributions ?? 0,
+      value: `₦${(adminData?.totalBalances?.totalContributions ?? 0).toLocaleString()}`,
       icon: <GitBranchPlus />,
       loading: adminLoading,
     },
     {
       title: "Loans",
-      value: adminData?.totalBalances?.totalLoansIssued ?? 0,
+      value: `₦${(adminData?.totalBalances?.totalLoansIssued ?? 0).toLocaleString()}`,
       icon: <CreditCard />,
       loading: adminLoading,
     },

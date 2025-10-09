@@ -437,10 +437,19 @@ export default function MembersPage() {
       { label: "Residential Address", value: m.residentialAddress || m.address },
       { label: "Status", value: org.status },
       { label: "Role", value: org.role },
-      { label: "Savings", value: org.balances?.savings?.toLocaleString() },
-      { label: "Contribution", value: org.balances?.contribution?.toLocaleString() },
-      { label: "Loan Balance", value: org.balances?.loanBalance?.toLocaleString() },
-      { label: "Total Balance", value: org.balances?.totalBalance?.toLocaleString() },
+      { label: "Savings", value: org.balances?.savings ? `₦${org.balances.savings.toLocaleString()}` : "-" },
+      {
+        label: "Contribution",
+        value: org.balances?.contribution ? `₦${org.balances.contribution.toLocaleString()}` : "-",
+      },
+      {
+        label: "Loan Balance",
+        value: org.balances?.loanBalance ? `₦${org.balances.loanBalance.toLocaleString()}` : "-",
+      },
+      {
+        label: "Total Balance",
+        value: org.balances?.totalBalance ? `₦${org.balances.totalBalance.toLocaleString()}` : "-",
+      },
       { label: "Created", value: m.createdAt ? new Date(m.createdAt).toLocaleString() : "-" },
       { label: "Updated", value: m.updatedAt ? new Date(m.updatedAt).toLocaleString() : "-" },
     ];
