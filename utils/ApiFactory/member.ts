@@ -18,11 +18,6 @@ export const memberPaymentFn = async (payload: deposit | (withdrawal & { type: s
   formData.append("description", payload.description);
   formData.append("type", payload.type);
 
-  // Only include file if it exists (Deposit case)
-  if ("payment_receipt" in payload && payload.payment_receipt) {
-    formData.append("paymentReceipt", payload.payment_receipt);
-  }
-
   const res = await fetch("/api/admin/financials/transaction", {
     method: "POST",
     body: formData,

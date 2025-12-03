@@ -225,3 +225,74 @@ export const createBulkMembersFn = async (payload: CreateBulkMembersPayload): Pr
   }
   return data;
 };
+
+export const getTransactionHistoryFn = async ({
+  orgId,
+  status,
+  type = "",
+  page = 0,
+  limit = 10,
+}: {
+  orgId: string;
+  status?: string;
+  type?: string;
+  page?: number;
+  limit?: number;
+}) => {
+  if (!orgId) throw new Error("Organization ID is required");
+  const params = new URLSearchParams();
+  params.set("orgId", orgId);
+  if (status === "") {
+    params.set("status", "pending");
+  } else if (typeof status === "string") {
+    params.set("status", status);
+  }
+  if (type && type !== "savings") {
+    params.set("type", type);
+  }
+  params.set("page", String(page + 1));
+  params.set("limit", String(limit));
+  const res = await fetch(`/api/admin/records/transactionHistory?${params.toString()}`);
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "An unknown error occured";
+    throw new Error(msg);
+  }
+  return data;
+};
+
+
+export const getNewPendingPaymentFn = async ({
+  orgId,
+  status,
+  type = "",
+  page = 0,
+  limit = 10,
+}: {
+  orgId: string;
+  status?: string;
+  type?: string;
+  page?: number;
+  limit?: number;
+}) => {
+  if (!orgId) throw new Error("Organization ID is required");
+  const params = new URLSearchParams();
+  params.set("orgId", orgId);
+  if (status === "") {
+    params.set("status", "pending");
+  } else if (typeof status === "string") {
+    params.set("status", status);
+  }
+  if (type && type !== "savings") {
+    params.set("type", type);
+  }
+  params.set("page", String(page + 1));
+  params.set("limit", String(limit));
+  const res = await fetch(`/api/admin/financials/newPendingPayments?${params.toString()}`);
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "An unknown error occured";
+    throw new Error(msg);
+  }
+  return data;
+};

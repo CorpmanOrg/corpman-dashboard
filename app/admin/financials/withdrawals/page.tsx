@@ -22,7 +22,7 @@ type MembersRow = MemberWithActions & { sn: number };
 
 export default function MembersPage() {
   const { modal, openModal, closeModal } = useModal();
-  const { user, currentRole } = useAuth();
+  const { user, currentRole, currentOrgId } = useAuth();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const status: string = "";
@@ -75,15 +75,15 @@ export default function MembersPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, status],
+    queryKey: ["fetch-members-by-admin", currentOrgId, page, rowsPerPage, status],
     queryFn: () =>
       getAllMembersFn({
-        orgId: user?.user?._id!,
+        orgId: currentOrgId!,
         page,
         limit: rowsPerPage,
         status,
       }),
-    enabled: !!user?.user?._id,
+    enabled: !!currentOrgId,
   });
 
   function getPaginatedDummyData(page: number, rowsPerPage: number) {

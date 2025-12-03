@@ -45,9 +45,9 @@ const CheckBalance: React.FC = () => {
     error: adminError,
     refetch: refetchAdmin,
   } = useQuery({
-    queryKey: ["admin-balance"],
+    queryKey: ["admin-balance", currentOrgId],
     queryFn: () => getAdminBalanceFn(currentOrgId!),
-    enabled: currentRole === "org_admin",
+    enabled: currentRole === "org_admin" && !!currentOrgId,
     staleTime: 30_000,
   });
 

@@ -3,16 +3,20 @@
 import React, { useState } from "react";
 import RadioInput from "@/components/reuseable/RadioInput";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useMutation } from "@tanstack/react-query";
-import { memberPaymentFn } from "@/utils/ApiFactory/member";
 import Toastbar from "@/components/Toastbar";
 import MemberContributionForm from "@/components/Contributions/MemberContributionForm";
-import { deposit, ErrorResponse, MakePaymentRes, ToastSeverity, ToastState, withdrawal } from "@/types/types";
+import PaymentModal from "@/components/Payments/PaymentModal";
+import { ToastSeverity, ToastState } from "@/types/types";
+import { PaymentData } from "@/types/payment.types";
 
 export default function Transactions() {
   const [selectedType, setSelectedType] = useState<string>("");
   const [resetSignal, setResetSignal] = useState<number>(0);
-  const [errorResetSignal, setErrorResetSignal] = useState<number>(0); // 👈 Add error reset signal
+  const [errorResetSignal, setErrorResetSignal] = useState<number>(0);
+
+  // Payment Modal State
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
+  const [pendingPaymentData, setPendingPaymentData] = useState<PaymentData | undefined>(undefined);
 
   const [toast, setToast] = useState<ToastState>({
     open: false,
@@ -39,19 +43,30 @@ export default function Transactions() {
   type ModuleType = (typeof allowedTypes)[number];
   const safeSelectedType = allowedTypes.includes(selectedType as ModuleType) ? (selectedType as ModuleType) : undefined;
 
-  const mutation = useMutation<MakePaymentRes, Error, deposit, withdrawal>({
-    mutationFn: memberPaymentFn,
-    onSuccess: (data) => {
-      // console.log("Transaction Success: ", data);
-      showToast("success", data.message || "Transaction successful!");
-      setResetSignal((prev) => prev + 1);
-    },
-    onError: (err: any) => {
-      // console.log("Transaction Error: ", err);
-      showToast("error", err.message || "Transaction failed!");
-      setErrorResetSignal((prev) => prev + 1); // 👈 Trigger error reset
-    },
-  });
+  /**
+   * Handle form submission by opening the Payment Modal
+   * instead of calling the API directly
+   */
+  const handleFormSubmit = (payload: any) => {
+    // Prepare payment data for the modal
+    const paymentData: PaymentData = {
+      amount: payload.amount,
+      description: payload.description,
+      type: payload.type,
+      // Add any other relevant data the modal might need
+    };
+
+    setPendingPaymentData(paymentData);
+    setIsPaymentModalOpen(true);
+  };
+
+  /**
+   * Handle payment modal close
+   */
+  const handleClosePaymentModal = () => {
+    setIsPaymentModalOpen(false);
+    setPendingPaymentData(undefined);
+  };
 
   return (
     <Card className="w-full h-full shadow-md bg-white hover:shadow-lg transition-shadow border-t-4 border-t-[#19d21f] dark:shadow-green-900/10 dark:bg-gray-900 dark:border-t-green-600 px-0 sm:px-0">
@@ -90,14 +105,17 @@ export default function Transactions() {
           <div className="mt-8">
             <MemberContributionForm
               moduleType={safeSelectedType}
-              onSubmit={(payload) => mutation.mutate(payload)}
-              resetSignal={resetSignal} // 👈 pass down
-              isLoading={mutation.isPending} // ✅ pass the mutation loading state
-              errorResetSignal={errorResetSignal} // 👈 pass error reset signal
+              onSubmit={handleFormSubmit}
+              resetSignal={resetSignal}
+              isLoading={false}
+              errorResetSignal={errorResetSignal}
             />
           </div>
         )}
       </CardContent>
+
+      {/* Payment Modal */}
+      <PaymentModal isOpen={isPaymentModalOpen} onClose={handleClosePaymentModal} paymentData={pendingPaymentData} />
     </Card>
   );
 }

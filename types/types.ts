@@ -207,7 +207,7 @@ export type TopUserReport = {
   date: string; // <-- Add this line
 };
 
-export type deposit = { amount: string; type: string; description: string; payment_receipt: null | File };
+export type deposit = { amount: string; type: string; description: string };
 export type withdrawal = { amount: string; type: string; description: string };
 
 export type MakePaymentRes = {
@@ -241,7 +241,7 @@ export interface PaymentDataProps {
   amount: number;
   type: string; // extend as needed
   status: string; // extend as needed
-  paymentReceipt: string;
+  paymentReceipt?: string; // Optional: legacy field for historical data
   description: string;
   expectedProcessingDays: number | null;
   createdAt: string; // could be Date if you parse it
@@ -326,3 +326,42 @@ export type CreateBulkMembersResponse = {
     failed: number;
   };
 };
+
+export type TransactionStatusFilter = "pending" | "approved" | "rejected" | "all";
+export type TransactionTypeFilter = "savings" | "contribution" | "loan" | "all";
+
+export interface TransactionHistoryMember {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+export interface TransactionHistoryBalanceImpact {
+  balanceType: string;
+  change: number;
+  description: string;
+}
+
+export interface TransactionHistoryProps {
+  id: string;
+  _id: string;
+  type: TransactionTypeFilter;
+  // Category extracted from raw type (e.g. 'savings', 'contribution', 'loan')
+  transactionType?: TransactionTypeFilter;
+  amount: number;
+  principalAmount: number;
+  interestAmount: number;
+  member: TransactionHistoryMember;
+  approvedBy: string | null;
+  status: TransactionStatusFilter;
+  description: string;
+  balanceImpact: TransactionHistoryBalanceImpact[];
+  createdAt: string;
+}
+
+export interface TransactionHistoryResponse {
+  transactions: TransactionHistoryProps[];
+  total: number;
+  page: number;
+  limit: number;
+}

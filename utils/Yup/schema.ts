@@ -21,45 +21,11 @@ export const LoginSchema = Yup.object({
 export const MemberContributionSchema = Yup.object().shape({
   amount: Yup.number().typeError("Amount must be a number").required("Amount is required"),
   description: Yup.string().required("Description is required"),
-  // payment_receipt: Yup.mixed()
-  //   .required("Payment receipt is required")
-  //   .test(
-  //     "fileType",
-  //     "Only image files are allowed",
-  //     (value) =>
-  //       !value ||
-  //       (typeof value === "object" &&
-  //         value !== null &&
-  //         "type" in value &&
-  //         typeof value.type === "string" &&
-  //         value.type.startsWith("image/"))
-  //   ),
-  payment_receipt: Yup.mixed<File>().when("tab", {
-    is: (val: string) => val === "Deposit",
-    then: (schema) =>
-      schema.required("Payment receipt is required").test("fileType", "Unsupported file type", (value) => {
-        if (!value) return false; // required handles null/empty
-        if (value instanceof File) {
-          return value.type === "application/pdf" || value.type.startsWith("image/");
-        }
-        return false;
-      }),
-    otherwise: (schema) => schema.notRequired(),
-  }),
 });
 
 export const DepositSchema = Yup.object().shape({
   amount: Yup.number().typeError("Amount must be a number").required("Amount is required"),
   description: Yup.string().required("Description is required"),
-  payment_receipt: Yup.mixed<File>()
-    .required("Payment receipt is required")
-    .test("fileType", "Unsupported file type", (value) => {
-      if (!value) return false;
-      if (value instanceof File) {
-        return value.type === "application/pdf" || value.type.startsWith("image/");
-      }
-      return false;
-    }),
 });
 
 export const WithdrawalSchema = Yup.object().shape({

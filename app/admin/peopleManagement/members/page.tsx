@@ -127,7 +127,7 @@ export default function MembersPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, statusForApi],
+    queryKey: ["fetch-members-by-admin", currentOrgId, page, rowsPerPage, statusForApi],
     queryFn: () =>
       getAllMembersFn({
         orgId: currentOrgId!,
@@ -135,7 +135,7 @@ export default function MembersPage() {
         limit: rowsPerPage,
         status: statusForApi,
       }),
-    enabled: !!user?.user?._id,
+    enabled: !!currentOrgId,
   });
 
   const mutation = useMutation<ApproveRejectResponse, Error, ApproveRejectPayload>({
@@ -149,9 +149,9 @@ export default function MembersPage() {
       setIsBulkMode(false);
       // Invalidate and refetch members data with more aggressive invalidation
       queryClient.invalidateQueries({ queryKey: ["fetch-members-by-admin"] });
-      // Also refetch the current query to ensure immediate update
+      // Force refetch for current query
       queryClient.refetchQueries({
-        queryKey: ["fetch-members-by-admin", user?.user?._id, page, rowsPerPage, statusForApi],
+        queryKey: ["fetch-members-by-admin", currentOrgId, page, rowsPerPage, statusForApi],
       });
     },
     onError: (error) => {

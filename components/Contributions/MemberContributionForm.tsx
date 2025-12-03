@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import FileUpload from "../reuseable/FileUpload";
 import { DepositSchema, WithdrawalSchema } from "@/utils/Yup/schema";
 import { depositInitialValues, withdrawalInitialValues } from "../assets/data";
 
@@ -117,9 +116,6 @@ const MemberContributionForm = ({
               placeholder="Description"
               onChange={formik.handleChange}
             />
-            <div className="md:col-span-2">
-              <FileUpload formik={formik} name="payment_receipt" />
-            </div>
           </div>
         )}
         {activeTab === "Withdrawal" && (

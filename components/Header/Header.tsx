@@ -1,18 +1,47 @@
 "use client";
 
-import { Bell, User } from "lucide-react";
+import { useState } from "react";
+import { Bell, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { ThemeToggle } from "../theme-toggle";
 import { useAuth } from "@/context/AuthContext";
+import { useLoading } from "@/context/LoadingContext";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
 import { logUserOut } from "@/utils/logout/logout";
 
 export function Header() {
-  const { user, selectedOrgId, setSelectedOrgId } = useAuth();
-  const myOrgs = user && user.user.organizations;
-  const organizationName = user && myOrgs?.length === 1 ? myOrgs[0].organizationName : "Select organization";
-  // console.log("User's Organizations: ", { myOrgs, organizationName });
-  // console.log("Header User Data: ", { user });
+  const { user, selectedOrgId, setSelectedOrgId, refetchUser } = useAuth();
+  const { setLoading } = useLoading();
+  const [isSwitchingOrg, setIsSwitchingOrg] = useState(false);
+  const myOrgs = user?.user?.organizations || [];
+  const hasMultipleOrgs = myOrgs.length > 1;
+  const hasSingleOrg = myOrgs.length === 1;
+  const singleOrgName = hasSingleOrg ? myOrgs[0].organizationName : "";
+
+  const handleOrgSwitch = async (newOrgId: string) => {
+    if (newOrgId === selectedOrgId) return; // No change needed
+
+    const orgName = myOrgs.find((org) => org.organizationId === newOrgId)?.organizationName || "organization";
+
+    setIsSwitchingOrg(true);
+    setLoading(true, `Switching to ${orgName}...`);
+
+    try {
+      // Update the selected organization
+      setSelectedOrgId(newOrgId);
+
+      // Refetch user data (this will trigger re-renders across the app)
+      await refetchUser();
+
+      // Add a small delay to allow React Query to refetch all queries
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (error) {
+      console.error("Error switching organization:", error);
+    } finally {
+      setIsSwitchingOrg(false);
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -38,21 +67,62 @@ export function Header() {
             <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full"></span>
           </Button>
-          <Select value={selectedOrgId || ""} onValueChange={setSelectedOrgId}>
-            <SelectTrigger className="w-[120px] sm:w-[200px] text-[#0e4430] dark:text-green-400 text-xs sm:text-sm">
-              <SelectValue placeholder={organizationName || "Select Org"} />
-            </SelectTrigger>
-            <SelectContent>
-              {user?.user?.organizations?.map((org, idx) => (
-                <SelectItem key={idx} value={org.organizationName} className="text-xs sm:text-sm">
-                  {org.organizationName}
-                </SelectItem>
-              ))}
-              <div className="px-4 py-2 text-xs sm:text-sm text-red-600 cursor-pointer" onClick={logUserOut}>
-                Logout
-              </div>
-            </SelectContent>
-          </Select>
+
+          {/* Single Organization - Show name directly, dropdown only for logout */}
+          {hasSingleOrg && (
+            <Select value={singleOrgName} onValueChange={(value) => value === "logout" && logUserOut()}>
+              <SelectTrigger className="w-[120px] sm:w-[200px] text-[#0e4430] dark:text-green-400 text-xs sm:text-sm">
+                <span className="truncate">{singleOrgName}</span>
+              </SelectTrigger>
+              <SelectContent>
+                <div
+                  className="px-4 py-2 text-xs sm:text-sm text-red-600 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={logUserOut}
+                >
+                  Logout
+                </div>
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Multiple Organizations - Show dropdown with all orgs */}
+          {hasMultipleOrgs && (
+            <Select
+              value={selectedOrgId || ""}
+              onValueChange={(value) => {
+                if (value === "logout") {
+                  logUserOut();
+                } else {
+                  handleOrgSwitch(value);
+                }
+              }}
+              disabled={isSwitchingOrg}
+            >
+              <SelectTrigger className="w-[120px] sm:w-[200px] text-[#0e4430] dark:text-green-400 text-xs sm:text-sm">
+                {isSwitchingOrg ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    <span className="text-xs sm:text-sm">Switching...</span>
+                  </div>
+                ) : (
+                  <SelectValue placeholder="Select organization" />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {myOrgs.map((org, idx) => (
+                  <SelectItem key={idx} value={org.organizationId} className="text-xs sm:text-sm">
+                    {org.organizationName}
+                  </SelectItem>
+                ))}
+                <div
+                  className="px-4 py-2 text-xs sm:text-sm text-red-600 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={logUserOut}
+                >
+                  Logout
+                </div>
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </header>
     </div>

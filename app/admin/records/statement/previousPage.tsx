@@ -9,15 +9,15 @@ import {
   StatementWithActions,
   TransactionTypeFilter,
   TransactionHistoryProps,
-  TransactionHistoryResponse,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import type { TransactionHistoryResponse } from "@/types/types";
 import { getTransactionHistoryFn } from "@/utils/ApiFactory/admin";
 import { useAuth } from "@/context/AuthContext";
 import { TransactionHistoryColumn } from "@/components/assets/data";
 import { StatCard } from "@/components/Statistics/StatCard";
 import { StatementFilterBar, StatementFilterProps } from "@/components/Filters/StatementFilterBar";
-import BaseTable, { Column } from "@/components/BaseTable";
+import BaseTable from "@/components/BaseTable";
 import { downloadCSV } from "@/components/Download/CSV/csv";
 import { downloadPDF } from "@/components/Download/PDF/pdf";
 import { Button } from "@/components/ui/button";
@@ -27,56 +27,11 @@ import { useModal } from "@/context/ModalContext";
 import Toastbar from "@/components/Toastbar";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
+import { Dummy_Statements_Column } from "@/components/assets/data";
 
 // Transaction type filter type
 // type TransactionTypeFilter = "savings" | "contributions" | "loans" | "all";
 type TransactionRow = TransactionHistoryProps & { id: string; ActionButton: string; sn: number };
-
-// Styled column definition with proper colors for statement page
-const StyledStatementsColumn: Column<StatementWithActions>[] = [
-  { id: "name", label: "Name", minWidth: 100 },
-  { id: "amount", label: "Amount", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
-  {
-    id: "transactionType",
-    label: "Category",
-    minWidth: 100,
-    format: (v) => (
-      <span
-        className={
-          `inline-block px-3 py-1 rounded-lg font-medium text-sm capitalize ` +
-          (v === "savings"
-            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200"
-            : v === "contribution"
-            ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200"
-            : "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-200")
-        }
-      >
-        {v}
-      </span>
-    ),
-  },
-  {
-    id: "type",
-    label: "Type",
-    minWidth: 80,
-    format: (v) => (
-      <span
-        className={
-          `inline-block px-4 py-1 rounded-xl font-semibold text-[0.95rem] border ` +
-          (v === "credit"
-            ? "bg-[#e6f9ed] text-[#166534] border-[#b6f2d7] dark:bg-green-900/40 dark:text-green-200 dark:border-green-700"
-            : "bg-[#fdeaea] text-[#991b1b] border-[#f5c2c7] dark:bg-red-900/40 dark:text-red-200 dark:border-red-700")
-        }
-      >
-        {v === "credit" ? "Credit" : "Debit"}
-      </span>
-    ),
-  },
-  { id: "balance", label: "Balance", minWidth: 100, format: (v) => `₦${v.toLocaleString()}` },
-  { id: "description", label: "Description", minWidth: 180 },
-  { id: "date", label: "Date", minWidth: 120, format: (v) => new Date(v).toLocaleDateString() },
-  { id: "ActionButton", label: "Actions", align: "center", minWidth: 120 },
-];
 
 const statementActionOptions: TableActionOption[] = [
   { key: "view", label: "View Statement" },
@@ -234,91 +189,35 @@ export default function StatementPage() {
     if (isSuccess) showToast("success", "Transaction history fetched ✅");
   }, [isSuccess, transactionTypeFilter, page, rowsPerPage]);
 
-  // Apply filters (transaction type pills + StatementFilterBar) to the mapped rows
-  const filteredRows = React.useMemo(() => {
-    const rowsSource = Array.isArray(data.data) && data.data.length ? data.data : transactionRows;
-    let result = rowsSource.slice();
-
-    // Filter by transaction type pills (savings, contribution, loan)
-    if (transactionTypeFilter && transactionTypeFilter !== "all") {
-      result = result.filter(
-        (r: any) => String(r.transactionType || "").toLowerCase() === String(transactionTypeFilter).toLowerCase()
-      );
-    }
-
-    // StatementFilterBar filters (type, min/max amount, start/end date)
-    if (filters) {
-      // credit/debit type
-      if (filters.type) {
-        result = result.filter((r: any) => String(r.type || "").toLowerCase() === String(filters.type).toLowerCase());
-      }
-
-      // amount range
-      if (filters.minAmount != null) {
-        const min = Number(filters.minAmount) || 0;
-        result = result.filter((r: any) => Number(r.amount || 0) >= min);
-      }
-      if (filters.maxAmount != null) {
-        const max = Number(filters.maxAmount) || 0;
-        result = result.filter((r: any) => Number(r.amount || 0) <= max);
-      }
-
-      // date range (compare using createdAt/date)
-      if (filters.startDate) {
-        const start = new Date(filters.startDate);
-        if (!isNaN(start.getTime())) {
-          result = result.filter((r: any) => {
-            const d = new Date(r.date || r.createdAt || null);
-            return !isNaN(d.getTime()) && d >= start;
-          });
-        }
-      }
-      if (filters.endDate) {
-        const end = new Date(filters.endDate);
-        if (!isNaN(end.getTime())) {
-          result = result.filter((r: any) => {
-            const d = new Date(r.date || r.createdAt || null);
-            return !isNaN(d.getTime()) && d <= end;
-          });
-        }
-      }
-    }
-
-    return result;
-  }, [data.data, transactionRows, transactionTypeFilter, filters]);
-
-  // Filter-aware statistics computed from filtered rows
-  const totalCredit = filteredRows
-    .filter((s: any) => String(s.type || "").toLowerCase() === "credit")
-    .reduce((acc: number, s: any) => acc + (Number(s.amount) || 0), 0);
-  const totalDebit = filteredRows
-    .filter((s: any) => String(s.type || "").toLowerCase() === "debit")
-    .reduce((acc: number, s: any) => acc + (Number(s.amount) || 0), 0);
+  // Filter-aware statistics computed from mapped data
+  const totalCredit = data.data.filter((s) => s.type === "credit").reduce((acc, s) => acc + (s.amount || 0), 0);
+  const totalDebit = data.data.filter((s) => s.type === "debit").reduce((acc, s) => acc + (s.amount || 0), 0);
   const balance = totalCredit - totalDebit;
 
-  // Transaction type filter options with counts derived from the mapped (unfiltered) data
+  // filteredData used by the transaction type filter summary
+  const filteredData =
+    transactionTypeFilter === "all" ? data.data : data.data.filter((d) => d.transactionType === transactionTypeFilter);
+
+  // Transaction type filter options with counts derived from mapped data
   const TRANSACTION_TYPE_OPTIONS: TransactionTypeFilter[] = ["all", "savings", "contribution", "loan"];
-  const transactionTypeCounts = React.useMemo<Record<TransactionTypeFilter, number>>(() => {
-    const source = Array.isArray(data.data) && data.data.length ? data.data : txResp?.transactions || [];
-    return {
-      all: (txResp?.total ?? (Array.isArray(source) ? source.length : 0)) as number,
-      savings: (source || []).filter((t: any) =>
-        String(t.transactionType || t.type || "")
-          .toLowerCase()
-          .startsWith("savings")
-      ).length,
-      contribution: (source || []).filter((t: any) =>
-        String(t.transactionType || t.type || "")
-          .toLowerCase()
-          .startsWith("contribution")
-      ).length,
-      loan: (source || []).filter((t: any) =>
-        String(t.transactionType || t.type || "")
-          .toLowerCase()
-          .startsWith("loan")
-      ).length,
-    };
-  }, [data.data, txResp]);
+  const transactionTypeCounts = {
+    all: txResp?.total || 0,
+    savings: (txResp?.transactions || []).filter((t: any) =>
+      String(t.type || "")
+        .toLowerCase()
+        .startsWith("savings")
+    ).length,
+    contribution: (txResp?.transactions || []).filter((t: any) =>
+      String(t.type || "")
+        .toLowerCase()
+        .startsWith("contribution")
+    ).length,
+    loan: (txResp?.transactions || []).filter((t: any) =>
+      String(t.type || "")
+        .toLowerCase()
+        .startsWith("loan")
+    ).length,
+  };
 
   const renderTransactionTypeFilter = () => (
     <div className="mb-6">
@@ -365,7 +264,7 @@ export default function StatementPage() {
       </div>
       {transactionTypeFilter !== "all" && (
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Showing <span className="font-semibold text-green-600 dark:text-green-400">{filteredRows.length}</span>{" "}
+          Showing <span className="font-semibold text-green-600 dark:text-green-400">{filteredData.length}</span>{" "}
           {transactionTypeFilter} transactions
         </p>
       )}
@@ -394,7 +293,7 @@ export default function StatementPage() {
                   <strong>Member:</strong> {row.member.name}
                 </p>
                 <p className="capitalize">
-                  <strong>Transaction type:</strong> {row.type.replace(/_/g, " ")}
+                  <strong>Transaction type:</strong> {row.type.replace(/_/g, ' ')}
                 </p>
                 <p>
                   <strong>Transaction Date:</strong> {new Date(row.date).toLocaleDateString()}
@@ -563,7 +462,7 @@ export default function StatementPage() {
             variant="outline"
             onClick={() =>
               downloadCSV(
-                filteredRows,
+                data.data,
                 TransactionHistoryColumn.filter((col) => col.id !== "ActionButton") as {
                   label: string;
                   id: keyof Statement;
@@ -573,7 +472,7 @@ export default function StatementPage() {
           >
             Export CSV
           </Button>
-          <Button variant="outline" onClick={() => downloadPDF(filteredRows)}>
+          <Button variant="outline" onClick={() => downloadPDF(data.data)}>
             Export PDF
           </Button>
         </div>
@@ -594,7 +493,7 @@ export default function StatementPage() {
       )}
 
       <BaseTable<TransactionRow>
-        rows={filteredRows}
+        rows={transactionRows}
         columns={TransactionHistoryColumn}
         page={page}
         setPage={setPage}

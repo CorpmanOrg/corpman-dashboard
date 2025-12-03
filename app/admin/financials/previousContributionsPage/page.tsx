@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useModal } from "@/context/ModalContext";
 import { useAuth } from "@/context/AuthContext";
-import { PaymentColumn, TransactionHistoryColumn } from "@/components/assets/data";
+import { MemberPaymentsData } from "@/components/assets/data";
 import { getAdminBalanceFn } from "@/utils/ApiFactory/admin";
 import {
   TError,
@@ -13,10 +13,8 @@ import {
   TableActionOption,
   PaymentDataProps,
   MemberPaymentsResponse,
-  TransactionHistoryProps,
-  TransactionHistoryResponse,
 } from "@/types/types";
-import { getNewPendingPaymentFn, approveOrRejectPaymentsFn } from "@/utils/ApiFactory/admin";
+import { getPaymentsByStatusFn, approveOrRejectPaymentsFn } from "@/utils/ApiFactory/admin";
 import { PaymentStatusFilter } from "@/types/types";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MainStatisticsCard } from "@/components/Statistics/MainStatisticsCard";
@@ -27,7 +25,7 @@ import Toastbar from "@/components/Toastbar";
 import BaseTable from "@/components/BaseTable";
 import { CreditCard, GitBranchPlus, PiggyBank, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
 
-type TransactionRow = TransactionHistoryProps & { id: string; ActionButton: string; sn: number };
+type PaymentRow = PaymentDataProps & { id: string; ActionButton: string; sn: number };
 
 // Simple direct embed viewer (avoids CORS issues by not using fetch)
 function ReceiptViewer({ path }: { path: string }) {
@@ -161,56 +159,27 @@ function ContributionsPaymentsContent() {
   ];
 
   const {
-    data: txResp,
-    isLoading: txLoading,
-    isError,
+    data: paymentsResp,
+    isLoading,
     isSuccess,
+    isError,
     error,
-    refetch,
-  } = useQuery<TransactionHistoryResponse, Error>({
-    // include statusFilter in the key so React Query refetches when status changes
-    queryKey: ["transaction-history", currentOrgId, statusFilter, page, rowsPerPage],
+  } = useQuery<MemberPaymentsResponse>({
+    queryKey: ["payments", currentOrgId, statusFilter, page, rowsPerPage],
     queryFn: () =>
-      getNewPendingPaymentFn({
-        orgId: currentOrgId || "",
-        status: statusFilter === "all" ? "" : statusFilter,
-        page,
-        limit: rowsPerPage,
-      }),
-    enabled: !!currentOrgId,
+      getPaymentsByStatusFn({ status: statusFilter, page, limit: rowsPerPage }) as Promise<MemberPaymentsResponse>,
   });
 
-  const transactionRows: TransactionRow[] = (txResp?.transactions || []).map((tx: any, idx: number) => ({
-    id: String(idx + 1),
-    ActionButton: "actions",
-    sn: idx + 1,
-    ...tx,
+  const paymentRows: PaymentRow[] = (paymentsResp?.payments || []).map((p: any, idx: number) => ({
+    ...p,
+    id: p._id || String(idx),
+    sn: page * rowsPerPage + idx + 1,
+    ActionButton: "ActionButton",
   }));
 
-  const totalCount = txResp?.total ?? transactionRows.length;
+  const totalCount = paymentsResp?.total ?? paymentRows.length;
 
-  // const {
-  //   data: paymentsResp,
-  //   isLoading,
-  //   isSuccess,
-  //   isError,
-  //   error,
-  // } = useQuery<MemberPaymentsResponse>({
-  //   queryKey: ["payments", statusFilter, page, rowsPerPage],
-  //   queryFn: () =>
-  //     getPaymentsByStatusFn({ status: statusFilter, page, limit: rowsPerPage }) as Promise<MemberPaymentsResponse>,
-  // });
-
-  // const paymentRows: PaymentRow[] = (paymentsResp?.payments || []).map((p: any, idx: number) => ({
-  //   ...p,
-  //   id: p._id || String(idx),
-  //   sn: page * rowsPerPage + idx + 1,
-  //   ActionButton: "ActionButton",
-  // }));
-
-  // const totalCount = paymentsResp?.total ?? paymentRows.length;
-
-  const allowedActionsForRow = (row: TransactionRow): TableActionOption[] => {
+  const allowedActionsForRow = (row: PaymentRow): TableActionOption[] => {
     const base: TableActionOption[] = [{ key: "view", label: "View Details" }];
     if (row.status === "pending") {
       base.push({ key: "approve", label: "Approve" }, { key: "reject", label: "Reject" });
@@ -313,7 +282,7 @@ function ContributionsPaymentsContent() {
       <div className="flex flex-wrap gap-3">
         {STATUS_OPTIONS.map((opt) => {
           const active = statusFilter === opt;
-          const disabled = (opt === "all" && statusFilter !== "all" && false) || txLoading; // keep logic placeholder if need disabling
+          const disabled = (opt === "all" && statusFilter !== "all" && false) || isLoading; // keep logic placeholder if need disabling
 
           const getIcon = () => {
             switch (opt) {
@@ -378,7 +347,7 @@ function ContributionsPaymentsContent() {
     }
   }, [isError, error]);
 
-  const handleActionClick = (action: TableActionOption, _columnId: string, row: TransactionRow) => {
+  const handleActionClick = (action: TableActionOption, _columnId: string, row: PaymentRow) => {
     if (!allowedActionsForRow(row).some((a) => a.key === action.key)) return;
     if (action.key === "view") {
       const formattedType = (() => {
@@ -419,9 +388,9 @@ function ContributionsPaymentsContent() {
         title: "Payment Details",
         content: (
           <div className="space-y-2 text-sm">
-            {/* <p>
+            <p>
               <strong>Member:</strong> {row.memberId?.firstName} {row.memberId?.surname}
-            </p> */}
+            </p>
             <p>
               <strong>Amount:</strong> {row.amount}
             </p>
@@ -434,9 +403,9 @@ function ContributionsPaymentsContent() {
                 className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
                   row.status === "pending"
                     ? "bg-amber-100 text-amber-700"
-                    : // : row.status === "active"
-                    // ? "bg-emerald-100 text-emerald-700"
-                    row.status === "rejected"
+                    : row.status === "active"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : row.status === "rejected"
                     ? "bg-rose-100 text-rose-700"
                     : "bg-gray-100 text-gray-600"
                 }`}
@@ -451,6 +420,9 @@ function ContributionsPaymentsContent() {
             )}
             <p>
               <strong>Created:</strong> {new Date(row.createdAt).toLocaleString()}
+            </p>
+            <p>
+              <strong>Updated:</strong> {new Date(row.updatedAt).toLocaleString()}
             </p>
           </div>
         ),
@@ -524,33 +496,17 @@ function ContributionsPaymentsContent() {
 
       <div className="px-6">{renderStatusFilter()}</div>
 
-      {txLoading && (
+      {isLoading && (
         <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">Loading payments...</div>
       )}
 
-      {!txLoading && !transactionRows.length && (
+      {!isLoading && !paymentRows.length && (
         <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
           {statusFilter === "all" ? "No payments found." : `No ${statusFilter} payments found.`}
         </div>
       )}
 
-      <BaseTable<TransactionRow>
-        rows={transactionRows}
-        columns={PaymentColumn}
-        page={page}
-        setPage={setPage}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-        totalPage={totalCount}
-        isLoading={txLoading}
-        showDownload={false}
-        showCheckbox={false}
-        rowName="Statement"
-        actionOptions={allActions}
-        actionItemOnClick={handleActionClick}
-      />
-
-      {/* {!txLoading && !!paymentRows.length && (
+      {!isLoading && !!paymentRows.length && (
         <div className="px-6">
           <BaseTable<PaymentRow>
             rows={paymentRows}
@@ -564,7 +520,7 @@ function ContributionsPaymentsContent() {
             actionItemOnClick={handleActionClick}
           />
         </div>
-      )} */}
+      )}
     </div>
   );
 }
