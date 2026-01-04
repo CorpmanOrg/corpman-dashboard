@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // Make backend call
+    console.log("API Url: ", apiUrl);
     const response = await fetch(`${apiUrl}/payment/organization/${orgId}/transactions?${upstreamQuery}`, {
       method: "GET",
       headers: {

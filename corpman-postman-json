@@ -1,0 +1,962 @@
+{
+	"info": {
+		"_postman_id": "eb0a75bd-9b33-4fe2-afc6-9a605a783c25",
+		"name": "Corpman v1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44574837",
+		"_collection_link": "https://corpman.postman.co/workspace/Corpman's-Workspace~94438052-a480-4332-8582-26e1a485bcc4/collection/44574837-eb0a75bd-9b33-4fe2-afc6-9a605a783c25?action=share&source=collection_link&creator=44574837"
+	},
+	"item": [
+		{
+			"name": "Organization",
+			"item": [
+				{
+					"name": "Organization Verify Email",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"contact4@techcoop.com\",\n    \"password\": \"securePassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}auth/verify-email/:token",
+							"host": [
+								"{{BASE_URL}}auth"
+							],
+							"path": [
+								"verify-email",
+								":token"
+							],
+							"variable": [
+								{
+									"key": "token",
+									"value": "ca5ab4c6c2a3ff55a1229d2c680d6882ca18cb62da42d119873832cf74cf2f7d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Organization Settings",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"contact7@techcoop.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}api/v1/organizations/:orgId/settings",
+							"host": [
+								"{{BASE_URL}}api"
+							],
+							"path": [
+								"v1",
+								"organizations",
+								":orgId",
+								"settings"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "68ecd5c0ae1f79bb1b92bc45"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Organization Settings Update",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "//Update only withdrawal processing:\n//   {\n//     \"savingsMaxDays\": 3,\n//     \"contributionMaxDays\": 90\n//   }\n\n  //Update only interest rate:\n  {\n    \"interestRate\": 2\n  }\n\n  // Update all loan settings:\n//   {\n//     \"contributionMultiplier\": 2.5,\n//     \"interestRate\": 6,\n//     \"maxLoanDurationMonths\": 18\n//   }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}api/v1/organizations/:orgId/settings",
+							"host": [
+								"{{BASE_URL}}api"
+							],
+							"path": [
+								"v1",
+								"organizations",
+								":orgId",
+								"settings"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "68ecd5c0ae1f79bb1b92bc45"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Organization Admin",
+			"item": [
+				{
+					"name": "Assign Role",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGMzNDhiOGYwNmI1YWY3MzVkZmY5ODMiLCJlbWFpbCI6ImphbmUxLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NzYzMDE2NiwiZXhwIjoxNzU4MjM0OTY2fQ.HXv737bXo20cFpfbou7-oOU9dgYAkLWc0uYfD2BHZfI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": " {\n    \"userId\": \"68c34f3e331d86d79dcc356f\",\n    \"organizationId\": \"68c34844f06b5af735dff97a\",\n    \"role\": \"member\" // \"member\" or \"org_admin\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}member/assign-role",
+							"host": [
+								"{{BASE_URL}}member"
+							],
+							"path": [
+								"assign-role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Organization Members",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}api/v1/organizations/:orgId/members?page=1&limit=10&status=",
+							"host": [
+								"{{BASE_URL}}api"
+							],
+							"path": [
+								"v1",
+								"organizations",
+								":orgId",
+								"members"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "active || pending || rejected"
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "68c34844f06b5af735dff97a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Member By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}api/v1/organizations/:orgId/members/:memberId",
+							"host": [
+								"{{BASE_URL}}api"
+							],
+							"path": [
+								"v1",
+								"organizations",
+								":orgId",
+								"members",
+								":memberId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "68c34844f06b5af735dff97a"
+								},
+								{
+									"key": "memberId",
+									"value": "68d7ecdd86870e74b1298e06"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Member Join Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"updates\": [\n    { \"memberId\": \"68c34f3e331d86d79dcc356f\", \"status\": \"active\" }\n    // { \"memberId\": \"685471c3cc68006fd99d061c\", \"status\": \"rejected\" }\n  ]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}member/approve/member",
+							"host": [
+								"{{BASE_URL}}member"
+							],
+							"path": [
+								"approve",
+								"member"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Organization Transaction History",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}payment/organization/:orgId/transactions?status=approved&type=loan",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								"organization",
+								":orgId",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "approved"
+								},
+								{
+									"key": "type",
+									"value": "loan"
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "68ecd5c0ae1f79bb1b92bc45"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Approve / Reject Payment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "action",
+									"value": "approve",
+									"description": "approve || reject",
+									"type": "text"
+								},
+								{
+									"key": "rejectionReason",
+									"value": "Invalid receipt or insufficient documentation",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "transferReceipt",
+									"type": "file",
+									"src": "S2x3pRf1o/Signature-Kehinde-Ishola.png",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}payment/:paymentId/approve",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								":paymentId",
+								"approve"
+							],
+							"variable": [
+								{
+									"key": "paymentId",
+									"value": "68ed21540b45a118b3420fc6"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Super Admin",
+			"item": [
+				{
+					"name": "Get All Organizations",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}api/v1/organizations?page=1&limit=10",
+							"host": [
+								"{{BASE_URL}}api"
+							],
+							"path": [
+								"v1",
+								"organizations"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization Detail",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}api/v1/organizations/:orgId/",
+							"host": [
+								"{{BASE_URL}}api"
+							],
+							"path": [
+								"v1",
+								"organizations",
+								":orgId",
+								""
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "68c34844f06b5af735dff97a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization Balance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}api/v1/organizations/:orgId/balance",
+							"host": [
+								"{{BASE_URL}}api"
+							],
+							"path": [
+								"v1",
+								"organizations",
+								":orgId",
+								"balance"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "68ec998ae35bdfc5f7a94941"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Organization Signup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Tech Solutions Inc\",\n    \"email\": \"contact@techsolutions.com\",\n    \"address\": \"123 Business Plaza, Victoria Island, Lagos\",\n    \"logo\": \"https://example.com/logo.png\",\n\n    \"adminEmail\": \"john.admin@techsolutions.com\",\n    \"adminPassword\": \"AdminPass456!\",\n    \"adminFirstName\": \"John\",\n    \"adminSurname\": \"Adebayo\",\n    \"adminMiddleName\": \"Olumide\",\n    \"adminDateOfBirth\": \"1985-03-15\",\n    \"adminStateOfOrigin\": \"Lagos\",\n    \"adminLGA\": \"Ikeja\",\n    \"adminMaritalStatus\": \"Married\",\n    \"adminResidentialAddress\": \"45 Adeniran Ogunsanya Street, Surulere, Lagos\",\n    \"adminMobileNumber\": \"+2348012345678\",\n    \"adminEmployer\": \"Tech Solutions Inc\",\n    \"adminAnnualIncome\": 12000000,\n    \"adminMonthlyContribution\": 50000,\n    \"adminNextOfKin\": \"Mary Adebayo\",\n    \"adminNextOfKinRelationship\": \"Wife\",\n    \"adminNextOfKinAddress\": \"45 Adeniran Ogunsanya Street, Surulere, Lagos\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}auth/register-org",
+							"host": [
+								"{{BASE_URL}}auth"
+							],
+							"path": [
+								"register-org"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Super Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"secretKey\": \"CorpMan$up3rAdm1n$ecr3tK3y2024!XyZ\",\n    \"email\": \"superadmin@corpman.com\",\n    \"password\": \"SecurePass123!\",\n    \"firstName\": \"Super\",\n    \"surname\": \"Admin\",\n    \"middleName\": \"System\",\n    \"dateOfBirth\": \"1990-01-01\",\n    \"stateOfOrigin\": \"Lagos\",\n    \"LGA\": \"Ikeja\",\n    \"maritalStatus\": \"Single\",\n    \"residentialAddress\": \"System Administrator Address\",\n    \"mobileNumber\": \"+2348000000000\",\n    \"employer\": \"CorpMan System\",\n    \"annualIncome\": 0,\n    \"monthlyContribution\": 0,\n    \"nextOfKin\": \"System Administrator\",\n    \"nextOfKinRelationship\": \"System\",\n    \"nextOfKinAddress\": \"System Address\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}auth/create-superadmin",
+							"host": [
+								"{{BASE_URL}}auth"
+							],
+							"path": [
+								"create-superadmin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Organization Resend Verification Email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"contact7@techcoop.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}auth/resend-verification",
+							"host": [
+								"{{BASE_URL}}auth"
+							],
+							"path": [
+								"resend-verification"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Members",
+			"item": [
+				{
+					"name": "OPAY PAYMENTS",
+					"item": [
+						{
+							"name": "Initiate Savings Deposit",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "amount",
+											"value": "100000",
+											"type": "text"
+										},
+										{
+											"key": "type",
+											"value": "loan_repayment",
+											"description": " savings_deposit || savings_withdrawal || contribution_deposit || contribution_withdrawal || loan || loan_repayment || organization_fund_deposit",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "description",
+											"type": "text"
+										},
+										{
+											"key": "paymentReceipt",
+											"type": "file",
+											"src": "3ZCuvxwxr/Work-ID-Kehinde-Ishola.png"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}payment",
+									"host": [
+										"{{BASE_URL}}payment"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Request To Join Organization",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"organizationId\": \"68c34844f06b5af735dff97a\",\n  \"surname\": \"Doe\",\n  \"firstName\": \"Jane\",\n  \"middleName\": \"Mary\",\n  \"email\": \"member1@example.com\",\n  \"password\": \"securePassword123\",\n  \"address\": \"123 Broad Street\",\n  \"dateOfBirth\": \"1990-06-15\",\n  \"stateOfOrigin\": \"Lagos\",\n  \"LGA\": \"Ikeja\",\n  \"maritalStatus\": \"Single\",\n  \"residentialAddress\": \"123 Broad Street, Ikeja, Lagos\",\n  \"mobileNumber\": \"08102528777\",\n  \"employer\": \"ABC Tech Ltd.\",\n  \"annualIncome\": 2500000,\n  \"monthlyContribution\": 20000,\n  \"nextOfKin\": \"John Doe\",\n  \"nextOfKinRelationship\": \"Brother\",\n  \"nextOfKinAddress\": \"456 King Road, Victoria Island, Lagos\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}auth/members/request",
+							"host": [
+								"{{BASE_URL}}auth"
+							],
+							"path": [
+								"members",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\n//      \"email\": \"superadmin@corpman.com\",\n//     \"password\": \"SecurePass123!\"\n\n// }\n{\n     \"email\": \"john.admin@techsolutions.com\",\n    \"password\": \"AdminPass456!\"\n\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}auth/user/login",
+							"host": [
+								"{{BASE_URL}}auth"
+							],
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Make Payment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "amount",
+									"value": "100000",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "loan_repayment",
+									"description": " savings_deposit || savings_withdrawal || contribution_deposit || contribution_withdrawal || loan || loan_repayment || organization_fund_deposit",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "description",
+									"type": "text"
+								},
+								{
+									"key": "paymentReceipt",
+									"type": "file",
+									"src": "3ZCuvxwxr/Work-ID-Kehinde-Ishola.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}payment",
+							"host": [
+								"{{BASE_URL}}payment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Make Payment Copy 2",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "amount",
+									"value": "100000",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "loan_repayment",
+									"description": " savings_deposit || savings_withdrawal || contribution_deposit || contribution_withdrawal || loan || loan_repayment || organization_fund_deposit",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "description",
+									"type": "text"
+								},
+								{
+									"key": "paymentReceipt",
+									"type": "file",
+									"src": "3ZCuvxwxr/Work-ID-Kehinde-Ishola.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}payment",
+							"host": [
+								"{{BASE_URL}}payment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transaction History",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{BASE_URL}}payment/history",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								"history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Balance",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{BASE_URL}}payment/balances",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								"balances"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Loan Eligibility",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{BASE_URL}}payment/loan-eligibility",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								"loan-eligibility"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Test Email Sending",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTg4ZGI4YjRhMTkyMmZjMTU5MzM1ZCIsInJvbGUiOiJvcmdhbml6YXRpb24iLCJpYXQiOjE3NDY0NDA1MTEsImV4cCI6MTc0NzA0NTMxMX0.njCk_zF9JQu8l0LlIf2khiACBjxB5_HR5LpWaSDbVow",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"to\": \"akoredeolawole@gmail.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}api/v1/test/send-test-email",
+					"host": [
+						"{{BASE_URL}}api"
+					],
+					"path": [
+						"v1",
+						"test",
+						"send-test-email"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

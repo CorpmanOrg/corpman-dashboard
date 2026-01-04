@@ -13,6 +13,8 @@ import {
   PaymentApproveRejectResponse,
 } from "@/types/types";
 
+import { fetchWrapper } from "@/utils/handleAppErr";
+
 export type MyApproveRejectPayload = {
   id: string;
   action: "approve" | "reject";
@@ -142,6 +144,47 @@ export const getAdminBalanceFn = async (orgId: string) => {
   return data?.balances || data;
 };
 
+export const getCooperativeSummaryFn = async (orgId: string) => {
+  // if (!orgId) throw new Error("Organization ID is required");
+  // const res = await fetch(`/api/admin/records/cooperativeSummary?orgId=${orgId}`, { cache: "no-store" });
+
+  // let data: any;
+  // try {
+  //   data = await res.json();
+  // } catch {
+  //   throw new Error("Failed to parse cooperative summary response");
+  // }
+
+  // if (!res.ok) {
+  //   const msg =
+  //     data?.error ||
+  //     data?.message ||
+  //     (Array.isArray(data?.errors) && data.errors.join(", ")) ||
+  //     "Failed to load cooperative summary";
+  //   const err = new Error(msg);
+  //   (err as any).status = res.status;
+  //   throw err;
+  // }
+
+  // return data;
+
+  const res = await fetch(`/api/admin/records/cooperativeSummary?orgId=${orgId}`, { cache: "no-store" });
+  const data = await res.json();
+
+  if (!res.ok) {
+    const msg =
+      data?.error ||
+      data?.message ||
+      (Array.isArray(data?.errors) && data.errors.join(", ")) ||
+      "Failed to load member balance";
+    const err = new Error(msg);
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  return data;
+};
+
 export const getPaymentsByStatusFn = async ({
   status,
   page = 0,
@@ -193,7 +236,7 @@ export const getOrganizationSettingsFn = async (email: string) => {
 
 // 🆕 Create Members Functions
 export const createSingleMemberFn = async (payload: CreateMemberPayload): Promise<CreateMemberResponse> => {
-  const res = await fetch("/api/admin/createMembers", {
+  const data = await fetchWrapper("/api/admin/createMembers", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -201,12 +244,7 @@ export const createSingleMemberFn = async (payload: CreateMemberPayload): Promis
     body: JSON.stringify(payload),
   });
 
-  const data = await res.json();
-  if (!res.ok) {
-    const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "Failed to create member";
-    throw new Error(msg);
-  }
-  return data;
+  return data as CreateMemberResponse;
 };
 
 export const createBulkMembersFn = async (payload: CreateBulkMembersPayload): Promise<CreateBulkMembersResponse> => {
@@ -239,6 +277,7 @@ export const getTransactionHistoryFn = async ({
   page?: number;
   limit?: number;
 }) => {
+  console.log("My Query Params: ", { orgId, status, type, page, limit });
   if (!orgId) throw new Error("Organization ID is required");
   const params = new URLSearchParams();
   params.set("orgId", orgId);
@@ -247,9 +286,8 @@ export const getTransactionHistoryFn = async ({
   } else if (typeof status === "string") {
     params.set("status", status);
   }
-  if (type && type !== "savings") {
-    params.set("type", type);
-  }
+  // Always send a canonical type value; default to 'all' when empty
+  params.set("type", type || "all");
   params.set("page", String(page + 1));
   params.set("limit", String(limit));
   const res = await fetch(`/api/admin/records/transactionHistory?${params.toString()}`);
@@ -260,7 +298,6 @@ export const getTransactionHistoryFn = async ({
   }
   return data;
 };
-
 
 export const getNewPendingPaymentFn = async ({
   orgId,

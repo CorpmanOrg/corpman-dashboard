@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData(); // parse incoming form-data
 
+    // Forward the multipart form-data to the external payment endpoint.
     const response = await fetch(`${apiUrl}/payment`, {
       method: "POST",
       headers: {

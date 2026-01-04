@@ -187,7 +187,7 @@ function ContributionsPaymentsContent() {
     ...tx,
   }));
 
-  const totalCount = txResp?.total ?? transactionRows.length;
+  const totalCount = txResp?.totalPages ?? 0;
 
   // const {
   //   data: paymentsResp,
@@ -280,7 +280,7 @@ function ContributionsPaymentsContent() {
 
     // 🔹 Always refetch from server (ensures totals are correct)
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-history"] });
       queryClient.invalidateQueries({ queryKey: ["admin-balance"] });
     },
   });
@@ -419,6 +419,7 @@ function ContributionsPaymentsContent() {
         title: "Payment Details",
         content: (
           <div className="space-y-2 text-sm">
+            
             {/* <p>
               <strong>Member:</strong> {row.memberId?.firstName} {row.memberId?.surname}
             </p> */}
@@ -461,7 +462,7 @@ function ContributionsPaymentsContent() {
         message: `Are you sure you want to approve payment of ₦${row.amount}?`,
         onConfirm: () =>
           mutation.mutate({
-            id: row.id,
+            id: row._id,
             action: "approve",
           }),
       });
@@ -472,7 +473,7 @@ function ContributionsPaymentsContent() {
         message: `Please provide a reason for rejecting ₦${row.amount}`,
         onReject: (reason: string) =>
           mutation.mutate({
-            id: row.id,
+            id: row._id,
             action: "reject",
             rejectionReason: reason,
           }),

@@ -207,8 +207,8 @@ export type TopUserReport = {
   date: string; // <-- Add this line
 };
 
-export type deposit = { amount: string; type: string; description: string };
-export type withdrawal = { amount: string; type: string; description: string };
+export type deposit = { amount: string; type: string; description: string; paymentReceipt?: File | string | null };
+export type withdrawal = { amount: string; type: string; description: string; paymentReceipt?: File | string | null };
 
 export type MakePaymentRes = {
   message: string;
@@ -362,6 +362,7 @@ export interface TransactionHistoryProps {
 export interface TransactionHistoryResponse {
   transactions: TransactionHistoryProps[];
   total: number;
+  totalPages: number;
   page: number;
   limit: number;
 }

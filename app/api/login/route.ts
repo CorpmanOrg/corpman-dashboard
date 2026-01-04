@@ -5,7 +5,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const payload = await req.json();
-
     const response = await fetch(`${apiUrl}/auth/user/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

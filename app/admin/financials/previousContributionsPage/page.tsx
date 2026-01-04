@@ -413,6 +413,26 @@ function ContributionsPaymentsContent() {
                 {row.status}
               </span>
             </p>
+            {/* Receipt preview (if available) */}
+            {(row as any).paymentReceipt ||
+            (row as any).receipt ||
+            (row as any).receiptPath ||
+            (row as any).attachment ||
+            (row as any).receiptUrl ? (
+              <div>
+                <h4 className="text-sm font-semibold">Receipt</h4>
+                <ReceiptViewer
+                  path={
+                    (row as any).paymentReceipt ||
+                    (row as any).receipt ||
+                    (row as any).receiptPath ||
+                    (row as any).attachment ||
+                    (row as any).receiptUrl ||
+                    ""
+                  }
+                />
+              </div>
+            ) : null}
             {row.description && (
               <p>
                 <strong>Description:</strong> {row.description}

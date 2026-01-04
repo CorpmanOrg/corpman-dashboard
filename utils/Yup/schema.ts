@@ -26,11 +26,55 @@ export const MemberContributionSchema = Yup.object().shape({
 export const DepositSchema = Yup.object().shape({
   amount: Yup.number().typeError("Amount must be a number").required("Amount is required"),
   description: Yup.string().required("Description is required"),
+  paymentReceipt: Yup.mixed()
+    .nullable()
+    .test("required", "Payment receipt is required", (value) => {
+      if (!value) return false;
+      if (typeof value === "string") return value.trim() !== "";
+      if (value instanceof File) return true;
+      return false;
+    })
+    .test("fileSize", "File is too large (max 5MB)", (value) => {
+      if (!value) return true;
+      if (typeof value === "string") return true; // existing URL/name
+      if (value instanceof File) {
+        return value.size <= 5 * 1024 * 1024;
+      }
+      return true;
+    })
+    .test("fileType", "Unsupported file type", (value) => {
+      if (!value) return true;
+      if (typeof value === "string") return true;
+      if (value instanceof File) {
+        const allowed = ["application/pdf", "image/jpeg", "image/png", "image/gif", "image/webp"];
+        return allowed.includes(value.type) || value.type.startsWith("image/");
+      }
+      return true;
+    }),
 });
 
 export const WithdrawalSchema = Yup.object().shape({
   amount: Yup.number().typeError("Amount must be a number").required("Amount is required"),
   description: Yup.string().required("Description is required"),
+  paymentReceipt: Yup.mixed()
+    .nullable()
+    .test("fileSize", "File is too large (max 5MB)", (value) => {
+      if (!value) return true;
+      if (typeof value === "string") return true;
+      if (value instanceof File) {
+        return value.size <= 5 * 1024 * 1024;
+      }
+      return true;
+    })
+    .test("fileType", "Unsupported file type", (value) => {
+      if (!value) return true;
+      if (typeof value === "string") return true;
+      if (value instanceof File) {
+        const allowed = ["application/pdf", "image/jpeg", "image/png", "image/gif", "image/webp"];
+        return allowed.includes(value.type) || value.type.startsWith("image/");
+      }
+      return true;
+    }),
 });
 
 export const paymentApproveOrRejectSchema = Yup.object({

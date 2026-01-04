@@ -18,6 +18,17 @@ export const memberPaymentFn = async (payload: deposit | (withdrawal & { type: s
   formData.append("description", payload.description);
   formData.append("type", payload.type);
 
+  // Optional file (paymentReceipt) - only append when provided and not for withdrawals without a file
+  const maybeFile = (payload as any).paymentReceipt;
+  if (maybeFile) {
+    // If it's a File (from input), append directly; if it's a string (URL), append as-is
+    if (typeof maybeFile === "string") {
+      formData.append("paymentReceipt", maybeFile);
+    } else if (maybeFile instanceof File) {
+      formData.append("paymentReceipt", maybeFile);
+    }
+  }
+
   const res = await fetch("/api/admin/financials/transaction", {
     method: "POST",
     body: formData,

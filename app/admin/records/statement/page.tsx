@@ -107,7 +107,7 @@ export default function StatementPage() {
         orgId: currentOrgId || "",
         page,
         limit: rowsPerPage,
-        type: transactionTypeFilter === "all" ? "" : transactionTypeFilter,
+        type: transactionTypeFilter,
       }),
     enabled: !!currentOrgId,
   });
@@ -119,7 +119,7 @@ export default function StatementPage() {
     ...tx,
   }));
 
-  const totalCount = txResp?.total ?? transactionRows.length;
+  const totalCount = txResp?.totalPages ?? transactionRows.length;
 
   const [data, setData] = useState<{
     data: any[];
@@ -223,7 +223,7 @@ export default function StatementPage() {
 
     setData({
       data: mapped,
-      totalPages: Math.ceil((txResp.total || 0) / (txResp.limit || rowsPerPage)),
+      totalPages: Math.ceil((txResp.totalPages || 0) / (txResp.limit || rowsPerPage)),
       totalRecords: txResp.total || 0,
       currentPage: (txResp.page || 1) - 1,
     });
@@ -518,7 +518,7 @@ export default function StatementPage() {
               {transactionTypeFilter === "all"
                 ? "Overall"
                 : `${transactionTypeFilter.charAt(0).toUpperCase() + transactionTypeFilter.slice(1)}`}{" "}
-              Statement Summary
+              Statements Summary
             </h3>
             {transactionTypeFilter !== "all" && (
               <button

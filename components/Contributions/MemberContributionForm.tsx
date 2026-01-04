@@ -2,7 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import FileUpload from "../reuseable/FileUpload";
 import { DepositSchema, WithdrawalSchema } from "@/utils/Yup/schema";
+import { memberPaymentFn } from "@/utils/ApiFactory/member";
+import { toast } from "@/hooks/use-toast";
 import { depositInitialValues, withdrawalInitialValues } from "../assets/data";
 
 const TABS = ["Deposit", "Withdrawal"];
@@ -37,11 +40,30 @@ const MemberContributionForm = ({
     validationSchema: activeTab === "Deposit" ? DepositSchema : WithdrawalSchema, // 👈 swap schema
     enableReinitialize: true, // 👈 important so schema + initialValues reset when tab changes
     validateOnMount: true,
-    onSubmit: (values) => {
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
       const type = getTransactionType(moduleType, activeTab);
-      const payload = { ...values, type };
-      // console.log("Form MemberContributionForm: ", payload);
-      onSubmit(payload);
+      const payload = { ...values, type } as any;
+      console.log("[MemberContributionForm] Submitting payload:", payload);
+
+      try {
+        setSubmitting(true);
+        const res = await memberPaymentFn(payload);
+        console.log("[MemberContributionForm] API success:", res);
+        // Show toast using backend message and awaiting-approval derived from status
+        const message = res?.message || "Payment submitted";
+        const status = res?.status;
+        const awaiting = status === "pending" ? "Your payment is awaiting approval." : "";
+        toast({ title: message, description: awaiting, variant: "default" });
+        onSubmit?.(res);
+        // reset form to initial values for current tab
+        resetForm({ values: activeTab === "Deposit" ? depositInitialValues : withdrawalInitialValues });
+      } catch (err: any) {
+        console.error("[MemberContributionForm] API error:", err);
+        const errMsg = err?.message || (err?.response?.data?.message ?? "An error occurred");
+        toast({ title: errMsg, variant: "destructive" });
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
@@ -116,6 +138,9 @@ const MemberContributionForm = ({
               placeholder="Description"
               onChange={formik.handleChange}
             />
+            <div className="md:col-span-2">
+              <FileUpload formik={formik} name="paymentReceipt" labelText="Upload supporting file (optional)" />
+            </div>
           </div>
         )}
         {activeTab === "Withdrawal" && (
@@ -134,6 +159,7 @@ const MemberContributionForm = ({
               placeholder="Withdrawal description"
               onChange={formik.handleChange}
             />
+            {/* Upload button hidden for withdrawals as per backend advice */}
             {/* You can add more fields for withdrawal if needed */}
           </div>
         )}

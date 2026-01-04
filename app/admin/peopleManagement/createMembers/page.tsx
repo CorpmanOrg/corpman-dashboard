@@ -9,6 +9,7 @@ import { useFormik } from "formik";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { createSingleMemberFn, createBulkMembersFn } from "@/utils/ApiFactory/admin";
+import { extractErrorMessage } from "@/utils/handleAppErr";
 import { CreateMemberPayload, CreateMemberResponse, ToastState, ToastSeverity } from "@/types/types";
 import Toastbar from "@/components/Toastbar";
 import * as Yup from "yup";
@@ -86,14 +87,18 @@ export default function CreateMembersPage() {
   };
 
   // Single member creation mutation
-  const singleMemberMutation = useMutation<CreateMemberResponse, Error, CreateMemberPayload>({
+  const singleMemberMutation = useMutation<CreateMemberResponse, unknown, CreateMemberPayload>({
     mutationFn: createSingleMemberFn,
     onSuccess: (data) => {
       showToast("success", data.message || "Member created successfully! ✅");
       formik.resetForm();
     },
     onError: (error) => {
-      showToast("error", error.message || "Failed to create member ❌");
+      console.log("Single member creation error: ", error);
+      // Support different error shapes: use centralized extractor
+      const anyErr = error as any;
+      const msg = extractErrorMessage(anyErr);
+      showToast("error", msg);
     },
   });
 

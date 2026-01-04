@@ -889,9 +889,9 @@ export const dummyPieData = [
   { label: "Category D", value: 15 },
   { label: "Category E", value: 5 },
 ];
-export const depositInitialValues: deposit = { amount: "", type: "", description: "" };
+export const depositInitialValues: deposit = { amount: "", type: "", description: "", paymentReceipt: null };
 
-export const withdrawalInitialValues: withdrawal = { amount: "", type: "", description: "" };
+export const withdrawalInitialValues: withdrawal = { amount: "", type: "", description: "", paymentReceipt: null };
 
 export const paymentApproveOrRejectIniValues = {
   action: "",

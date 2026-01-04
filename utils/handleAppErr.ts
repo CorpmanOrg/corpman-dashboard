@@ -190,3 +190,77 @@ export function createErrorHandler(options?: {
     return errorResult;
   };
 }
+
+// --- New reusable helpers for fetch-style requests ---
+
+/**
+ * Parse a Response object's body: try JSON.parse, otherwise return raw text or null
+ */
+export async function parseFetchResponseBody(res: Response): Promise<any> {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+/**
+ * Handle a fetch Response: parse the body and either return it (on ok)
+ * or throw a normalized error object { status, data } for callers to consume.
+ */
+export async function handleFetchResponse(res: Response): Promise<any> {
+  const data = await parseFetchResponseBody(res);
+  if (!res.ok) {
+    throw { status: res.status, data };
+  }
+  return data;
+}
+
+/**
+ * Extract a user-friendly message from a variety of error shapes.
+ * Handles strings, arrays, thrown objects like {status,data}, axios-like responses, etc.
+ */
+export function extractErrorMessage(err: any): string {
+  if (!err) return "An unexpected error occurred";
+  if (typeof err === "string") return err;
+  if (Array.isArray(err)) return err.join(", ");
+  if (err?.message) return err.message;
+  // Common normalized throw shape: { status, data }
+  if (err?.data) return extractErrorMessage(err.data);
+
+  if (err?.error) {
+    if (typeof err.error === "string") return err.error;
+    if (Array.isArray(err.error)) return err.error.join(", ");
+    if (err.error.message) return err.error.message;
+  }
+
+  const respData = err?.response?.data ?? err?.body ?? err;
+  if (respData) {
+    if (typeof respData === "string") return respData;
+    if (Array.isArray(respData)) return respData.join(", ");
+    if (respData.message) return respData.message;
+    if (respData.error) {
+      if (typeof respData.error === "string") return respData.error;
+      if (Array.isArray(respData.error)) return respData.error.join(", ");
+    }
+    try {
+      return JSON.stringify(respData);
+    } catch {
+      return String(respData);
+    }
+  }
+
+  return "An unexpected error occurred";
+}
+
+/**
+ * Convenience wrapper to be used in ApiFactory:
+ * const data = await fetchWrapper(url, opts);
+ * It forwards fetch to `fetch`, parses response and throws normalized errors.
+ */
+export async function fetchWrapper(input: RequestInfo, init?: RequestInit) {
+  const res = await fetch(input, init as any);
+  return handleFetchResponse(res);
+}
