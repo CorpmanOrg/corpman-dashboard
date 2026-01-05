@@ -94,6 +94,87 @@ export const AssignRoleSchema = Yup.object({
 });
 
 export const SettingsSchema = Yup.object({
-  savingsMaxDays: Yup.number().min(1, "Must be at least 1").required("Savings max days is required"),
-  contributionMaxDays: Yup.number().min(1, "Must be at least 1").required("Contribution max days is required"),
+  savingsMaxDays: Yup.number()
+    .transform((value, original) => (original === "" || original === null ? null : value))
+    .nullable()
+    .notRequired()
+    .typeError("Savings max days must be a number"),
+
+  contributionMaxDays: Yup.number()
+    .transform((value, original) => (original === "" || original === null ? null : value))
+    .nullable()
+    .notRequired()
+    .typeError("Contribution max days must be a number"),
+
+  contributionMultiplier: Yup.number()
+    .transform((value, original) => (original === "" || original === null ? null : value))
+    .nullable()
+    .notRequired()
+    .typeError("Contribution multiplier must be a number"),
+
+  interestRate: Yup.number()
+    .transform((value, original) => (original === "" || original === null ? null : value))
+    .nullable()
+    .notRequired()
+    .typeError("Interest rate must be a number"),
+
+  maxLoanDuration: Yup.number()
+    .transform((value, original) => (original === "" || original === null ? null : value))
+    .nullable()
+    .notRequired()
+    .typeError("Max loan duration must be a number"),
+
+  minimumContributionMonths: Yup.number()
+    .transform((value, original) => (original === "" || original === null ? null : value))
+    .nullable()
+    .notRequired()
+    .typeError("Minimum contribution months must be a number"),
+
+  paymentMode: Yup.string()
+    .transform((value, original) => (original === "" ? null : value))
+    .nullable()
+    .notRequired()
+    .test("is-valid-paymentMode", 'Payment mode must be either "manual" or "auto"', (val) =>
+      val == null ? true : ["manual", "auto"].includes(val)
+    ),
 });
+
+// Helper validator that enforces: if an initially-non-empty field becomes empty, return an error.
+export async function validateSettingsWithInitial(values: any, initialValues: any) {
+  const errors: Record<string, string> = {};
+
+  try {
+    await SettingsSchema.validate(values, { abortEarly: false });
+  } catch (err: any) {
+    if (err?.inner && Array.isArray(err.inner)) {
+      err.inner.forEach((e: any) => {
+        if (e.path && !errors[e.path]) errors[e.path] = e.message;
+      });
+    } else if (err?.path) {
+      errors[err.path] = err.message;
+    }
+  }
+
+  const fields: { key: string; label: string }[] = [
+    { key: "savingsMaxDays", label: "Savings Max Days" },
+    { key: "contributionMaxDays", label: "Contribution Max Days" },
+    { key: "contributionMultiplier", label: "Contribution Multiplier" },
+    { key: "interestRate", label: "Interest Rate" },
+    { key: "maxLoanDuration", label: "Max Loan Duration" },
+    { key: "minimumContributionMonths", label: "Minimum Contribution Months" },
+    { key: "paymentMode", label: "Payment Mode" },
+  ];
+
+  fields.forEach((f) => {
+    const v = values[f.key];
+    const orig = initialValues ? initialValues[f.key] : undefined;
+    const isEmpty = v === null || v === "" || v === undefined;
+    const origEmpty = orig === null || orig === "" || orig === undefined;
+    const changed = String(v) !== String(orig);
+    if (isEmpty && !origEmpty && changed) {
+      errors[f.key] = `${f.label} cannot be empty`;
+    }
+  });
+
+  return errors;
+}

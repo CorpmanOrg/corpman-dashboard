@@ -11,6 +11,7 @@ import {
   StatementWithActions,
   MemberWithActions,
   TransactionHistoryProps,
+  SettingsFormValues,
 } from "@/types/types";
 import { Home, Users, DollarSign, FileText, Settings, LogOut } from "lucide-react";
 import {} from "@/types/types";
@@ -30,6 +31,16 @@ export const SignUpInitialValues: SignUpFormValues = {
 export const LoginInitialValues: LoginFormValues = {
   email: "",
   password: "",
+};
+
+export const SettingsInitialValues: SettingsFormValues = {
+  savingsMaxDays: null,
+  contributionMaxDays: null,
+  contributionMultiplier: null,
+  interestRate: null,
+  maxLoanDuration: null,
+  minimumContributionMonths: null,
+  paymentMode: "",
 };
 
 export const Dummy_Memebers_Column: Column<MemberWithActions & { sn: number }>[] = [
@@ -902,11 +913,6 @@ export const AssignRoleInitialValues = {
   userId: "",
   organizationId: "",
   role: "",
-};
-
-export const SettingsInitialValues = {
-  savingsMaxDays: 5,
-  contributionMaxDays: 90,
 };
 
 export const TransactionHistoryColumn: Column<TransactionHistoryProps & { sn: number }>[] = [

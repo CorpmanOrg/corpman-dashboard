@@ -278,6 +278,50 @@ export type SettingsType = {
   contributionMaxDays: number;
 };
 
+// Types for the Settings form (Formik values and partial update payloads)
+export type PaymentMode = "manual" | "auto";
+
+export interface SettingsFormValues {
+  savingsMaxDays?: number | null;
+  contributionMaxDays?: number | null;
+  contributionMultiplier?: number | null;
+  interestRate?: number | null;
+  maxLoanDuration?: number | null;
+  minimumContributionMonths?: number | null;
+  paymentMode?: PaymentMode | "" | null;
+}
+
+// Use when sending partial updates to the API (all fields optional)
+export type PartialSettingsUpdate = Partial<SettingsFormValues>;
+
+// Strongly-typed success response for GET /organizations/:orgId/settings
+export interface OrganizationSettings {
+  _id: string;
+  name: string;
+  withdrawalSettings: {
+    savingsMaxDays: number;
+    contributionMaxDays: number;
+  };
+  loanSettings: {
+    contributionMultiplier: number;
+    interestRate: number;
+    maxLoanDurationMonths: number;
+    minimumContributionMonths: number;
+  };
+  paymentSettings: {
+    mode: PaymentMode;
+  };
+}
+
+export interface GetSettingsSuccessResponse {
+  organization: OrganizationSettings;
+}
+
+// Standard error response from the API
+export interface ApiErrorResponse {
+  message: string;
+}
+
 // 🆕 Create Members Types
 export type CreateMemberPayload = {
   organizationId: string;

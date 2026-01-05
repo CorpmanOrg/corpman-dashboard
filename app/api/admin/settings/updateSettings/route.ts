@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function POST(req: NextRequest) {
+export async function PATCH(req: NextRequest) {
   const apiUrl = process.env.API_BASE_TEST_URL;
 
   try {
