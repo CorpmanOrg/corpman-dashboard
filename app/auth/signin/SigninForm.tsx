@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { Formik, Form } from "formik";
@@ -25,6 +26,7 @@ const Signin = () => {
   const { refetchUser } = useAuth();
   const { setLoading } = useLoading();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [toast, setToast] = useState<ToastState>({
     open: false,
@@ -148,12 +150,22 @@ const Signin = () => {
               <div className="mt-[10px] space-y-2">
                 <Input
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={formik.values.password}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   placeholder="Password"
                   className={formik.touched.password && formik.errors.password ? "border-red-500" : ""}
+                  appendIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="p-1 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  }
                 />
                 {formik.touched.password && formik.errors.password && (
                   <p className="text-red-500 text-xs mt-1">{formik.errors.password}</p>

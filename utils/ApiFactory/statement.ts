@@ -40,7 +40,8 @@ export async function fetchStatements(query: StatementQuery) {
   // Real API call
   const params = new URLSearchParams();
   Object.entries(query).forEach(([k, v]) => v && params.append(k, String(v)));
-  const res = await fetch(`/api/records/statement?${params}`);
+  // const res = await fetch(`/api/records/statement?${params}`);
+  const res = await fetch(`/api/admin/records/history?${params}`);
   if (!res.ok) {
     // fallback to mock
     return {

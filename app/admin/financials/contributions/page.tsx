@@ -173,7 +173,7 @@ function ContributionsPaymentsContent() {
     queryFn: () =>
       getNewPendingPaymentFn({
         orgId: currentOrgId || "",
-        status: statusFilter === "all" ? "" : statusFilter,
+        status: statusFilter === "all" ? "all" : statusFilter,
         page,
         limit: rowsPerPage,
       }),
