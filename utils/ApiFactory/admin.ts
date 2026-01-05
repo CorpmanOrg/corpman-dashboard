@@ -85,7 +85,12 @@ export const approveOrRejectMembersFn = async (payload: ApproveRejectPayload): P
   return data;
 };
 
-export async function approveOrRejectPaymentsFn({ id, action, rejectionReason, transferReceipt }: MyApproveRejectPayload): Promise<any> {
+export async function approveOrRejectPaymentsFn({
+  id,
+  action,
+  rejectionReason,
+  transferReceipt,
+}: MyApproveRejectPayload): Promise<any> {
   if (!id) throw new Error("id is required");
   if (!action) throw new Error("action is required");
 
