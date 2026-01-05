@@ -9,6 +9,7 @@ import { Member, TError, ToastSeverity, ToastState, TableActionOption, MemberWit
 import { getAllMembersFn, approveOrRejectMembersFn } from "@/utils/ApiFactory/admin";
 import { StatCardOpposite } from "@/components/Statistics/StatCard";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
+import ApproveModal from "@/components/Modals/ApproveModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 import Toastbar from "@/components/Toastbar";
 import BaseTable from "@/components/BaseTable";
@@ -229,6 +230,14 @@ export default function MembersPage() {
         onClose={closeModal}
         onConfirm={modal.data?.onConfirm}
         message={modal.data?.message || ""}
+      />
+
+      <ApproveModal
+        open={modal.type === "approve"}
+        onClose={closeModal}
+        onConfirm={modal.data?.onConfirm}
+        message={modal.data?.message || ""}
+        loading={mutation.status === "pending"}
       />
 
       <DetailsModal open={modal.type === "details"} onClose={closeModal} title={modal.data?.title}>

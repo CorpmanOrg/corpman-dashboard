@@ -400,6 +400,7 @@ export interface TransactionHistoryProps {
   status: TransactionStatusFilter;
   description: string;
   balanceImpact: TransactionHistoryBalanceImpact[];
+  paymentReceipt?: string | File | null;
   createdAt: string;
 }
 

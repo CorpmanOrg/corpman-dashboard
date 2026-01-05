@@ -19,6 +19,7 @@ export type MyApproveRejectPayload = {
   id: string;
   action: "approve" | "reject";
   rejectionReason?: string; // only required for reject
+  transferReceipt?: File | string | null; // required for withdraw approvals
 };
 
 export const getAllMembersFn = async ({
@@ -84,11 +85,42 @@ export const approveOrRejectMembersFn = async (payload: ApproveRejectPayload): P
   return data;
 };
 
-export async function approveOrRejectPaymentsFn({ id, action, rejectionReason }: MyApproveRejectPayload): Promise<any> {
+export async function approveOrRejectPaymentsFn({ id, action, rejectionReason, transferReceipt }: MyApproveRejectPayload): Promise<any> {
   if (!id) throw new Error("id is required");
   if (!action) throw new Error("action is required");
 
-  // payload matches exactly what backend expects
+  // Use FormData if transferReceipt is provided
+  if (transferReceipt instanceof File) {
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("action", action);
+    if (action === "reject" && rejectionReason?.trim()) {
+      formData.append("rejectionReason", rejectionReason);
+    }
+    formData.append("transferReceipt", transferReceipt);
+
+    const res = await fetch(`/api/admin/financials/adminTransaction`, {
+      method: "PATCH",
+      body: formData, // No Content-Type header - browser sets it automatically with boundary
+    });
+
+    const text = await res.text();
+    let data: any;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { message: text };
+    }
+
+    if (!res.ok) {
+      const msg = data?.message || data?.error || `Request failed with status ${res.status}`;
+      throw new Error(msg);
+    }
+
+    return data;
+  }
+
+  // Fall back to JSON for non-file uploads
   const payload: Record<string, any> = { action };
   if (action === "reject") {
     if (!rejectionReason?.trim()) {

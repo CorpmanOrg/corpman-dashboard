@@ -12,7 +12,49 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Authentication token missing, logout and login back" }, { status: 401 });
     }
 
-    // Extract payload from client request
+    const contentType = req.headers.get("content-type") || "";
+
+    // Handle FormData (file upload)
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const id = formData.get("id") as string;
+      const action = formData.get("action") as string;
+      const rejectionReason = formData.get("rejectionReason") as string | null;
+      const transferReceipt = formData.get("transferReceipt") as File | null;
+
+      if (!id || !action) {
+        return NextResponse.json({ error: "Missing required fields (id, action)" }, { status: 400 });
+      }
+
+      // Create FormData to forward to backend
+      const backendFormData = new FormData();
+      backendFormData.append("action", action);
+      if (rejectionReason) {
+        backendFormData.append("rejectionReason", rejectionReason);
+      }
+      if (transferReceipt) {
+        backendFormData.append("transferReceipt", transferReceipt);
+      }
+
+      // Proxy call to backend with FormData
+      const res = await fetch(`${url}/payment/${id}/approve`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: backendFormData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        return NextResponse.json({ error: errorData?.message || "Failed to update payment" }, { status: res.status });
+      }
+
+      const data = await res.json();
+      return NextResponse.json(data, { status: 200 });
+    }
+
+    // Handle JSON (no file upload)
     const body = await req.json();
     const { id, action, rejectionReason } = body;
 

@@ -21,6 +21,7 @@ import { PaymentStatusFilter } from "@/types/types";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MainStatisticsCard } from "@/components/Statistics/MainStatisticsCard";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
+import ApproveModal from "@/components/Modals/ApproveModal";
 import RejectionModal from "@/components/Modals/RejectionModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 import Toastbar from "@/components/Toastbar";
@@ -419,7 +420,6 @@ function ContributionsPaymentsContent() {
         title: "Payment Details",
         content: (
           <div className="space-y-2 text-sm">
-            
             {/* <p>
               <strong>Member:</strong> {row.memberId?.firstName} {row.memberId?.surname}
             </p> */}
@@ -453,19 +453,74 @@ function ContributionsPaymentsContent() {
             <p>
               <strong>Created:</strong> {new Date(row.createdAt).toLocaleString()}
             </p>
+            <div>
+              <strong>Receipt:</strong>
+              <div className="mt-2">
+                {row.paymentReceipt ? (
+                  typeof row.paymentReceipt === "string" ? (
+                    <ReceiptViewer path={row.paymentReceipt} />
+                  ) : // If it's a File object, just show filename and size
+                  row.paymentReceipt instanceof File ? (
+                    <div className="text-sm">
+                      <div>{row.paymentReceipt.name}</div>
+                      <div className="text-xs text-gray-500">{(row.paymentReceipt.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-500">Unsupported receipt format</span>
+                  )
+                ) : (
+                  <span className="text-xs text-gray-500">No receipt available</span>
+                )}
+              </div>
+            </div>
           </div>
         ),
       });
     }
     if (action.key === "approve") {
-      openModal("confirm", {
-        message: `Are you sure you want to approve payment of ₦${row.amount}?`,
-        onConfirm: () =>
-          mutation.mutate({
-            id: row._id,
-            action: "approve",
-          }),
-      });
+      // require transferReceipt for withdrawal/debit approvals
+      const typeStr = String(row.type || "").toLowerCase();
+      const isWithdrawal = typeStr.includes("withdrawal") || typeStr.includes("withdraw");
+
+      if (isWithdrawal) {
+        openModal("approve", {
+          message: `Please upload transfer receipt to approve payment of ₦${row.amount}`,
+          onConfirm: (file: File | string | null) => {
+            const payload = {
+              id: row._id,
+              action: "approve" as const,
+              transferReceipt: file,
+            };
+            
+            console.log("=== APPROVAL PAYLOAD ===");
+            console.log("Transaction ID:", payload.id);
+            console.log("Action:", payload.action);
+            console.log("payload:", payload);
+            console.log("Transfer Receipt File:", payload.transferReceipt);
+            if (payload.transferReceipt instanceof File) {
+              console.log("File Details:", {
+                name: payload.transferReceipt.name,
+                size: payload.transferReceipt.size,
+                type: payload.transferReceipt.type,
+                lastModified: new Date(payload.transferReceipt.lastModified).toISOString(),
+              });
+            }
+            console.log("Full Row Data:", row);
+            console.log("========================");
+            
+            mutation.mutate(payload);
+          },
+        });
+      } else {
+        openModal("confirm", {
+          message: `Are you sure you want to approve payment of ₦${row.amount}?`,
+          onConfirm: () =>
+            mutation.mutate({
+              id: row._id,
+              action: "approve",
+            }),
+        });
+      }
     }
 
     if (action.key === "reject") {
@@ -495,6 +550,14 @@ function ContributionsPaymentsContent() {
         onConfirm={modal.data?.onConfirm}
         message={modal.data?.message || ""}
         loading={isMutating} // Only if your ConfirmModal supports this prop
+      />
+
+      <ApproveModal
+        open={modal.type === "approve"}
+        onClose={closeModal}
+        onConfirm={modal.data?.onConfirm}
+        message={modal.data?.message || ""}
+        loading={isMutating}
       />
 
       <RejectionModal
