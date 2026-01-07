@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page = searchParams.get("page") || "1";
   const limit = searchParams.get("limit") || "10";
-  // const status = searchParams.get("status"); // ❌ REMOVED - not forwarding status
-  const type = searchParams.get("type");
+  const status = searchParams.get("status"); // ❌ REMOVED - not forwarding status
+  // const type = searchParams.get("type");
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
 

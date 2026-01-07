@@ -72,7 +72,6 @@ export const Dummy_Memebers_Column: Column<MemberWithActions & { sn: number }>[]
     format: (v) => {
       const getStatusStyles = (status: string) => {
         const baseClasses = "inline-block px-4 py-1 rounded-xl font-semibold text-[0.95rem] border";
-
         switch (status) {
           case "active":
             return `${baseClasses} bg-[#e6f9ed] text-[#166534] border-[#b6f2d7] dark:bg-green-900/40 dark:text-green-200 dark:border-green-700`;

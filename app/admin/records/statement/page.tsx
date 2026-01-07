@@ -101,13 +101,14 @@ export default function StatementPage() {
     error,
     refetch,
   } = useQuery<TransactionHistoryResponse, Error>({
-    queryKey: ["transaction-history", currentOrgId, page, rowsPerPage, transactionTypeFilter],
+    queryKey: ["transaction-history", currentOrgId, page, rowsPerPage, transactionTypeFilter, "all"],
     queryFn: () =>
       getTransactionHistoryFn({
         orgId: currentOrgId || "",
         page,
         limit: rowsPerPage,
         type: transactionTypeFilter,
+        status: "all",
       }),
     enabled: !!currentOrgId,
   });

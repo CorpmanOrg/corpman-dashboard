@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const orgId = searchParams.get("orgId");
-  const status = searchParams.get("status") ?? "pending";
+  const status = searchParams.get("status") ?? "all";
   const type = searchParams.get("type") ?? "savings";
   const page = searchParams.get("page");
   const limit = searchParams.get("limit");

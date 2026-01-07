@@ -298,7 +298,7 @@ export const getTransactionHistoryFn = async ({
   const params = new URLSearchParams();
   params.set("orgId", orgId);
   if (status === "") {
-    params.set("status", "pending");
+    params.set("status", "all");
   } else if (typeof status === "string") {
     params.set("status", status);
   }
