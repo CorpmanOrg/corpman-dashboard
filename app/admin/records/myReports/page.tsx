@@ -8,9 +8,13 @@ import UpdateProfile from "./updateProfile";
 import DisputeResolution from "./dispute";
 import CheckBalance from "./checkBalance";
 import LoanEligibility from "./loanEligibility";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MyReports() {
   const [selectedType, setSelectedType] = useState<string>("");
+  const { currentRole } = useAuth();
+
+  const isAdmin = currentRole === "org_admin";
 
   const allowedTypes = ["statement", "updateProfile", "disputeResolution", "checkBalance", "loanEligibility"] as const;
 
@@ -24,7 +28,9 @@ export default function MyReports() {
       </CardHeader>
       <CardContent className="px-6 py-8">
         <p className="mb-4 text-sm text-gray-700 dark:text-gray-300 font-medium">
-          Select the type of report you want to generate
+          {isAdmin
+            ? "Generate organization-wide statements for all members"
+            : "Select the type of report you want to generate"}
         </p>
         <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <RadioInput
@@ -34,39 +40,43 @@ export default function MyReports() {
             checked={selectedType === "statement"}
             onChange={() => setSelectedType("statement")}
           />
-          <RadioInput
-            name="reportType"
-            value="updateProfile"
-            label="Update Profile"
-            checked={selectedType === "updateProfile"}
-            onChange={() => setSelectedType("updateProfile")}
-          />
-          <RadioInput
-            name="reportType"
-            value="disputeResolution"
-            label="Dispute Resolution"
-            checked={selectedType === "disputeResolution"}
-            onChange={() => setSelectedType("disputeResolution")}
-          />
-           <RadioInput
-            name="reportType"
-            value="checkBalance"
-            label="Check Balance"
-            checked={selectedType === "checkBalance"}
-            onChange={() => setSelectedType("checkBalance")}
-          />
-          <RadioInput
-            name="reportType"
-            value="loanEligibility"
-            label="Loan Eligibility"
-            checked={selectedType === "loanEligibility"}
-            onChange={() => setSelectedType("loanEligibility")}
-          />
+          {!isAdmin && (
+            <>
+              <RadioInput
+                name="reportType"
+                value="updateProfile"
+                label="Update Profile"
+                checked={selectedType === "updateProfile"}
+                onChange={() => setSelectedType("updateProfile")}
+              />
+              <RadioInput
+                name="reportType"
+                value="disputeResolution"
+                label="Dispute Resolution"
+                checked={selectedType === "disputeResolution"}
+                onChange={() => setSelectedType("disputeResolution")}
+              />
+              <RadioInput
+                name="reportType"
+                value="checkBalance"
+                label="Check Balance"
+                checked={selectedType === "checkBalance"}
+                onChange={() => setSelectedType("checkBalance")}
+              />
+              <RadioInput
+                name="reportType"
+                value="loanEligibility"
+                label="Loan Eligibility"
+                checked={selectedType === "loanEligibility"}
+                onChange={() => setSelectedType("loanEligibility")}
+              />
+            </>
+          )}
         </div>
         {safeSelectedType && (
           <div className="mt-8">
             {safeSelectedType === "statement" ? (
-              <GenerateStatement />
+              <GenerateStatement autoOpen />
             ) : safeSelectedType === "updateProfile" ? (
               <UpdateProfile />
             ) : safeSelectedType === "disputeResolution" ? (

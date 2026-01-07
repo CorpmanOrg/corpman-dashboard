@@ -95,6 +95,33 @@ export type Member = {
   [key: string]: any;
 };
 
+export type MemberPaymentHistory = {
+  id: string;
+  _id: string;
+  memberId: string;
+  organizationId: string;
+  amount: number;
+  principalAmount: number;
+  interestAmount: number;
+  interestRate: number;
+  loanDurationMonths: number;
+  type: TransactionTypeFilter;
+  status: TransactionStatusFilter;
+  paymentReceipt: string;
+  description: string;
+  expectedProcessingDays: number | null;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  approvedAt: string | null;
+  approvedBy: {
+    _id: string;
+    email: string;
+    surname: string;
+    firstName: string;
+  };
+};
+
 export interface Column<T> {
   id: keyof T | "ActionButton"; // allow action buttons too
   label: string;
@@ -110,6 +137,13 @@ export type MemberParams = {
   status?: string;
 };
 
+export type MemberPaymentHistoryParams = {
+  page?: number;
+  limit?: number;
+  status?: string;
+  type?: string;
+};
+
 export type MembersApiResponse = {
   total: number;
   page: number;
@@ -123,6 +157,20 @@ export type TError = {
 };
 
 export type TData = MembersApiResponse;
+
+export type MembersPaymentHistoryApiResponse = {
+  payments: MemberPaymentHistory[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
+
+export type MemberPaymentHistoryError = {
+  message: string;
+  error: string;
+};
+
+export type MembersPHData = MembersPaymentHistoryApiResponse;
 
 export type MembersQueryKey = ["fetch-members-by-admin", string | undefined, number, number, string | undefined];
 
@@ -221,10 +269,106 @@ export type MakePaymentRes = {
 // Payment status filter values (includes 'all' for future backend support)
 export type PaymentStatusFilter = "pending" | "approved" | "rejected" | "all";
 
+export type ExportType = "pdf" | "csv";
+
+export type GenerateMemberStatementParams = {
+  startDate?: string;
+  endDate?: string;
+  type?: string;
+  status?: PaymentStatusFilter | "";
+  exportType?: ExportType;
+};
+
+export type GenerateOrganizationStatementParams = {
+  orgId: string;
+  startDate?: string;
+  endDate?: string;
+  type?: string;
+  status?: PaymentStatusFilter | "";
+  exportType?: ExportType;
+};
+
+export type GenerateStatementResponse = {
+  blob: Blob;
+  filename?: string;
+  contentType?: string;
+};
+
 export type ErrorResponse = {
   message?: string;
   success?: boolean;
 };
+
+// Member Profile Types
+export interface MemberOrganizationBalances {
+  savings: number;
+  contribution: number;
+  loanBalance: number;
+}
+
+export interface MemberOrganizationInfo {
+  balances: MemberOrganizationBalances;
+  organization: string;
+  status: string;
+  role: string;
+  _id: string;
+}
+
+export interface MemberProfileUser {
+  _id: string;
+  email: string;
+  surname: string;
+  firstName: string;
+  middleName?: string;
+  address?: string;
+  dateOfBirth?: string;
+  stateOfOrigin?: string;
+  LGA?: string;
+  maritalStatus?: string;
+  residentialAddress?: string;
+  mobileNumber?: string;
+  employer?: string;
+  annualIncome?: number;
+  monthlyContribution?: number;
+  nextOfKin?: string;
+  nextOfKinRelationship?: string;
+  nextOfKinAddress?: string;
+  isSuperAdmin: boolean;
+  organizations: MemberOrganizationInfo[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MemberProfileResponse {
+  message: string;
+  user: MemberProfileUser;
+}
+
+// Update Member Profile Types
+export interface UpdateMemberProfileParams {
+  firstName?: string;
+  surname?: string;
+  middleName?: string;
+  dateOfBirth?: string;
+  stateOfOrigin?: string;
+  LGA?: string;
+  maritalStatus?: string;
+  residentialAddress?: string;
+  address?: string;
+  mobileNumber?: string;
+  email?: string;
+  employer?: string;
+  annualIncome?: number;
+  monthlyContribution?: number;
+  nextOfKin?: string;
+  nextOfKinRelationship?: string;
+  nextOfKinAddress?: string;
+}
+
+export interface UpdateMemberProfileResponse {
+  message: string;
+  user: MemberProfileUser;
+}
 
 export interface MemberIdProps {
   _id: string;

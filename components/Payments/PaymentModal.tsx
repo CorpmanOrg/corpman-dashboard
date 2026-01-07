@@ -1,43 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import { X, Lock, Building, Wallet } from "lucide-react";
-import BulkTransferForm from "./BulkTransferForm";
-// import DirectDebitForm from "./DirectDebitForm";
-import FaviconLogo from "../assets/svg/favicon.svg";
-import { PaymentStep, PaymentMethodId, PaymentMethod, PaymentModalProps } from "@/types/payment.types";
-import { GatewayProvider, GatewayConfig } from "@/types/gateway.types";
-import { gatewayManager } from "@/utils/PaymentGateway/GatewayManager";
+import React from "react";
+import { PaymentModalProps } from "@/types/payment.types";
 
-/**
- * PaymentModal Component
- *
- * A comprehensive payment modal supporting multiple payment methods.
- * Handles payment flow, countdown timers, and confirmation states.
- *
- * @component
- * @example
- * ```tsx
- * <PaymentModal
- *   isOpen={true}
- *   onClose={() => setIsOpen(false)}
- *   paymentData={{ amount: 200.00 }}
- * />
- * ```
- */
-const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, paymentData }) => {
-  /** ===============================
-   *  🧠 State Management
-   *  =============================== */
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId | null>(null);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [paymentStep, setPaymentStep] = useState<PaymentStep>("methods");
+// PaymentModal temporarily disabled — original implementation moved to VCS.
+// Re-enable by restoring the previous implementation from history.
 
-  // 🏦 Gateway Selection
-  const [selectedGateway, setSelectedGateway] = useState<GatewayProvider | null>(null);
-  const [availableGateways, setAvailableGateways] = useState<GatewayConfig[]>([]);
-  const [paymentReference, setPaymentReference] = useState<string>("");
-
-  // ⏱️ Countdown for virtual account expiration (5 mins)
-  const [countdownTime, setCountdownTime] = useState<number>(300);
+const PaymentModal: React.FC<PaymentModalProps> = () => {
+  return null;
+};
   const [isCountdownActive, setIsCountdownActive] = useState<boolean>(false);
 
   // ✅ User confirmation flow ("I have made payment")

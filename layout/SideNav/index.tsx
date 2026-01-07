@@ -163,7 +163,7 @@ export function SideNav() {
       }
       if (item.key === "records") {
         item.children = item.children?.filter(
-          (c: (typeof item.children)[number]) => ["statement", "profile"].includes(c.key)
+          (c: (typeof item.children)[number]) => ["statement", "myReports", "profile"].includes(c.key)
           // ["statement", "reporting", "minutes", "profile"].includes(c.key)
         );
         return true;

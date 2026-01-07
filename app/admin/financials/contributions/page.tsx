@@ -610,7 +610,7 @@ function ContributionsPaymentsContent() {
         showDownload={false}
         showCheckbox={false}
         rowName="Statement"
-        actionOptions={allActions}
+        actionOptions={allowedActionsForRow}
         actionItemOnClick={handleActionClick}
       />
 

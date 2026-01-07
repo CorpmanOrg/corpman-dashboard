@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +7,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSingleMemberFn } from "@/utils/ApiFactory/admin";
+import { getMemberProfileFn, updateMemberProfileFn } from "@/utils/ApiFactory/member";
+import { UpdateMemberProfileParams, UpdateMemberProfileResponse } from "@/types/types";
 import { Badge } from "@/components/ui/badge";
 import {
   User,
@@ -26,55 +27,80 @@ import {
   Shield,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/context/AuthContext";
-
-const initialProfile = {
-  firstName: "Leslie",
-  lastName: "Alexander",
-  email: "leslie.alexander@example.com",
-  phone: "+1 (555) 123-4567",
-  bio: "Customer-focused manager with 10+ years of experience in building scalable solutions and leading cross-functional teams.",
-  gender: "Female",
-  dob: "1985-06-15",
-  nationalId: "A123456789",
-  country: "United States",
-  city: "New York, NY",
-  postalCode: "10001",
-  taxId: "TAX-987654321",
-  role: "Senior Customer Service Manager",
-  department: "Customer Success",
-  joinDate: "2019-03-15",
-  profileImage: null as string | null,
-};
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState(initialProfile);
   const [editMode, setEditMode] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user, currentOrgId } = useAuth();
-
-  const selectedMemberId = user && user?.user?._id ? user.user._id : null;
+  const [formData, setFormData] = useState<UpdateMemberProfileParams>({});
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["member-detail", currentOrgId, selectedMemberId],
-    queryFn: () => getSingleMemberFn(currentOrgId!, selectedMemberId!),
-    enabled: !!selectedMemberId && !!currentOrgId,
+  const {
+    data: profileData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["member-profile"],
+    queryFn: getMemberProfileFn,
     staleTime: 60_000,
   });
 
-  console.log("User Data in Profile Page: ", { data, isLoading, isError, error });
+  const profile = profileData?.user;
+
+  // Update mutation
+  const updateMutation = useMutation<UpdateMemberProfileResponse, Error, UpdateMemberProfileParams>({
+    mutationFn: updateMemberProfileFn,
+    onSuccess: (data) => {
+      // Invalidate and refetch profile data
+      queryClient.invalidateQueries({ queryKey: ["member-profile"] });
+      setEditMode(false);
+      setFormData({});
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toISOString().split("T")[0];
+    } catch {
+      return "N/A";
+    }
+  };
+
+  // Format join date for display
+  const formatJoinDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "short" });
+    } catch {
+      return "N/A";
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: string) => (value: string) => {
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,28 +108,90 @@ export default function ProfilePage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setProfile((prev) => ({ ...prev, profileImage: reader.result as string }));
+        setProfileImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    setEditMode(false);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
+    // Only send fields that have been modified
+    const updates: UpdateMemberProfileParams = {};
+    Object.keys(formData).forEach((key) => {
+      const value = formData[key as keyof UpdateMemberProfileParams];
+      if (value !== undefined && value !== null && value !== "") {
+        updates[key as keyof UpdateMemberProfileParams] = value as any;
+      }
     });
+
+    // Only proceed if there are actual changes
+    if (Object.keys(updates).length === 0) {
+      toast({
+        title: "No Changes",
+        description: "No fields were modified.",
+        variant: "default",
+      });
+      setEditMode(false);
+      return;
+    }
+
+    updateMutation.mutate(updates);
   };
 
   const handleCancel = () => {
-    setProfile(initialProfile);
+    setProfileImage(null);
+    setFormData({});
     setEditMode(false);
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-full">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <Skeleton className="h-10 w-64 mb-2 bg-gray-300 dark:bg-gray-700" />
+            <Skeleton className="h-5 w-96 bg-gray-300 dark:bg-gray-700" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Skeleton className="h-96 bg-gray-300 dark:bg-gray-700" />
+            <div className="lg:col-span-2 space-y-8">
+              <Skeleton className="h-64 bg-gray-300 dark:bg-gray-700" />
+              <Skeleton className="h-48 bg-gray-300 dark:bg-gray-700" />
+              <Skeleton className="h-64 bg-gray-300 dark:bg-gray-700" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError || !profile) {
+    return (
+      <div className="p-4 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-full">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-red-200">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <X className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Failed to Load Profile</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  {(error as any)?.message || "Unable to fetch your profile data."}
+                </p>
+                <Button onClick={() => refetch()}>Try Again</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract org info
+  const orgInfo = profile.organizations?.[0];
+  const userRole = orgInfo?.role || "member";
+  const orgStatus = orgInfo?.status || "N/A";
 
   return (
     <div className="p-4 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-full">
@@ -117,7 +205,7 @@ export default function ProfilePage() {
             </div>
             <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
               <Shield className="w-3 h-3 mr-1" />
-              Verified
+              {orgStatus === "active" ? "Verified" : orgStatus}
             </Badge>
           </div>
         </div>
@@ -131,12 +219,12 @@ export default function ProfilePage() {
                   {/* Profile Image */}
                   <div className="relative group mb-6">
                     <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
-                      {profile.profileImage ? (
-                        <AvatarImage src={profile.profileImage} alt="Profile" />
+                      {profileImage ? (
+                        <AvatarImage src={profileImage} alt="Profile" />
                       ) : (
                         <AvatarFallback className="text-2xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                          {profile.firstName[0]}
-                          {profile.lastName[0]}
+                          {profile.firstName?.[0] || ""}
+                          {profile.surname?.[0] || ""}
                         </AvatarFallback>
                       )}
                     </Avatar>
@@ -161,12 +249,12 @@ export default function ProfilePage() {
 
                   {/* Basic Info */}
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                    {profile.firstName} {profile.lastName}
+                    {profile.firstName} {profile.surname}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 mb-2">{profile.role}</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-2">{userRole}</p>
                   <Badge variant="outline" className="mb-4">
                     <Users className="w-3 h-3 mr-1" />
-                    {profile.department}
+                    {profile.employer || "N/A"}
                   </Badge>
 
                   {/* Quick Stats */}
@@ -174,12 +262,12 @@ export default function ProfilePage() {
                     <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <Calendar className="w-5 h-5 text-blue-500 mx-auto mb-1" />
                       <p className="text-xs text-gray-600 dark:text-gray-400">Joined</p>
-                      <p className="font-semibold text-sm">Mar 2019</p>
+                      <p className="font-semibold text-sm">{formatJoinDate(profile.createdAt)}</p>
                     </div>
                     <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <Globe className="w-5 h-5 text-green-500 mx-auto mb-1" />
                       <p className="text-xs text-gray-600 dark:text-gray-400">Location</p>
-                      <p className="font-semibold text-sm">{profile.country}</p>
+                      <p className="font-semibold text-sm">{profile.stateOfOrigin || "N/A"}</p>
                     </div>
                   </div>
 
@@ -197,10 +285,10 @@ export default function ProfilePage() {
                       <div className="flex gap-2">
                         <Button
                           onClick={handleSave}
-                          disabled={isSaving}
+                          disabled={updateMutation.isPending}
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                         >
-                          {isSaving ? (
+                          {updateMutation.isPending ? (
                             <div className="flex items-center">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                               Saving...
@@ -212,7 +300,12 @@ export default function ProfilePage() {
                             </>
                           )}
                         </Button>
-                        <Button onClick={handleCancel} variant="outline" className="flex-1" disabled={isSaving}>
+                        <Button
+                          onClick={handleCancel}
+                          variant="outline"
+                          className="flex-1"
+                          disabled={updateMutation.isPending}
+                        >
                           <X className="w-4 h-4 mr-2" />
                           Cancel
                         </Button>
@@ -240,7 +333,7 @@ export default function ProfilePage() {
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
                     <Input
                       name="firstName"
-                      value={profile.firstName}
+                      value={formData.firstName !== undefined ? formData.firstName : profile.firstName || ""}
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
@@ -249,68 +342,68 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</label>
                     <Input
-                      name="lastName"
-                      value={profile.lastName}
+                      name="surname"
+                      value={formData.surname !== undefined ? formData.surname : profile.surname || ""}
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Middle Name</label>
+                    <Input
+                      name="middleName"
+                      value={formData.middleName !== undefined ? formData.middleName : profile.middleName || ""}
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Marital Status</label>
                     {editMode ? (
-                      <Select value={profile.gender} onValueChange={handleSelectChange("gender")}>
+                      <Select
+                        value={
+                          formData.maritalStatus !== undefined ? formData.maritalStatus : profile.maritalStatus || ""
+                        }
+                        onValueChange={handleSelectChange("maritalStatus")}
+                      >
                         <SelectTrigger className="border-blue-200 focus:border-blue-500">
-                          <SelectValue placeholder="Select gender" />
+                          <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Female">Female</SelectItem>
-                          <SelectItem value="Male">Male</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                          <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                          <SelectItem value="Single">Single</SelectItem>
+                          <SelectItem value="Married">Married</SelectItem>
+                          <SelectItem value="Divorced">Divorced</SelectItem>
+                          <SelectItem value="Widowed">Widowed</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Input name="gender" value={profile.gender} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                      <Input
+                        name="maritalStatus"
+                        value={profile.maritalStatus || "N/A"}
+                        readOnly
+                        className="bg-gray-50 dark:bg-gray-800"
+                      />
                     )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
                     <Input
-                      name="dob"
+                      name="dateOfBirth"
                       type="date"
-                      value={profile.dob}
+                      value={
+                        formData.dateOfBirth !== undefined ? formData.dateOfBirth : formatDate(profile.dateOfBirth)
+                      }
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">National ID</label>
-                    <Input
-                      name="nationalId"
-                      value={profile.nationalId}
-                      onChange={handleChange}
-                      readOnly={!editMode}
-                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
-                    />
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Member ID</label>
+                    <Input name="memberId" value={profile._id || ""} readOnly className="bg-gray-50 dark:bg-gray-800" />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
-                  <Textarea
-                    name="bio"
-                    value={profile.bio}
-                    onChange={handleChange}
-                    readOnly={!editMode}
-                    rows={4}
-                    className={
-                      editMode
-                        ? "border-blue-200 focus:border-blue-500 resize-none"
-                        : "bg-gray-50 dark:bg-gray-800 resize-none"
-                    }
-                    placeholder="Tell us about yourself..."
-                  />
                 </div>
               </CardContent>
             </Card>
@@ -330,7 +423,7 @@ export default function ProfilePage() {
                     <Input
                       name="email"
                       type="email"
-                      value={profile.email}
+                      value={formData.email !== undefined ? formData.email : profile.email || ""}
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
@@ -339,9 +432,9 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
                     <Input
-                      name="phone"
+                      name="mobileNumber"
                       type="tel"
-                      value={profile.phone}
+                      value={formData.mobileNumber !== undefined ? formData.mobileNumber : profile.mobileNumber || ""}
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
@@ -362,51 +455,134 @@ export default function ProfilePage() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
-                    {editMode ? (
-                      <Select value={profile.country} onValueChange={handleSelectChange("country")}>
-                        <SelectTrigger className="border-blue-200 focus:border-blue-500">
-                          <SelectValue placeholder="Select country" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="United States">🇺🇸 United States</SelectItem>
-                          <SelectItem value="Canada">🇨🇦 Canada</SelectItem>
-                          <SelectItem value="United Kingdom">🇬🇧 United Kingdom</SelectItem>
-                          <SelectItem value="Germany">🇩🇪 Germany</SelectItem>
-                          <SelectItem value="France">🇫🇷 France</SelectItem>
-                          <SelectItem value="Australia">🇦🇺 Australia</SelectItem>
-                          <SelectItem value="Other">🌍 Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input name="country" value={profile.country} readOnly className="bg-gray-50 dark:bg-gray-800" />
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">City/State</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">State of Origin</label>
                     <Input
-                      name="city"
-                      value={profile.city}
+                      name="stateOfOrigin"
+                      value={
+                        formData.stateOfOrigin !== undefined ? formData.stateOfOrigin : profile.stateOfOrigin || ""
+                      }
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Postal Code</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">LGA</label>
                     <Input
-                      name="postalCode"
-                      value={profile.postalCode}
+                      name="LGA"
+                      value={formData.LGA !== undefined ? formData.LGA : profile.LGA || ""}
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Residential Address</label>
+                    <Input
+                      name="residentialAddress"
+                      value={
+                        formData.residentialAddress !== undefined
+                          ? formData.residentialAddress
+                          : profile.residentialAddress || ""
+                      }
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                    <Input
+                      name="address"
+                      value={formData.address !== undefined ? formData.address : profile.address || ""}
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Financial & Next of Kin Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2 text-purple-500" />
+                  Financial & Emergency Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Employer</label>
+                    <Input
+                      name="employer"
+                      value={formData.employer !== undefined ? formData.employer : profile.employer || ""}
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tax ID</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Annual Income</label>
                     <Input
-                      name="taxId"
-                      value={profile.taxId}
+                      name="annualIncome"
+                      type="number"
+                      value={formData.annualIncome !== undefined ? formData.annualIncome : profile.annualIncome || ""}
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Monthly Contribution</label>
+                    <Input
+                      name="monthlyContribution"
+                      type="number"
+                      value={
+                        formData.monthlyContribution !== undefined
+                          ? formData.monthlyContribution
+                          : profile.monthlyContribution || ""
+                      }
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Next of Kin</label>
+                    <Input
+                      name="nextOfKin"
+                      value={formData.nextOfKin !== undefined ? formData.nextOfKin : profile.nextOfKin || ""}
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Relationship</label>
+                    <Input
+                      name="nextOfKinRelationship"
+                      value={
+                        formData.nextOfKinRelationship !== undefined
+                          ? formData.nextOfKinRelationship
+                          : profile.nextOfKinRelationship || ""
+                      }
+                      onChange={handleChange}
+                      readOnly={!editMode}
+                      className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Next of Kin Address</label>
+                    <Input
+                      name="nextOfKinAddress"
+                      value={
+                        formData.nextOfKinAddress !== undefined
+                          ? formData.nextOfKinAddress
+                          : profile.nextOfKinAddress || ""
+                      }
                       onChange={handleChange}
                       readOnly={!editMode}
                       className={editMode ? "border-blue-200 focus:border-blue-500" : "bg-gray-50 dark:bg-gray-800"}

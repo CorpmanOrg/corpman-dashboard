@@ -27,7 +27,7 @@ import { useModal } from "@/context/ModalContext";
 import Toastbar from "@/components/Toastbar";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
-import { Dummy_Statements_Column } from "@/components/assets/data";
+// Dummy_Statements_Column removed; no replacement import required here.
 
 // Transaction type filter type
 // type TransactionTypeFilter = "savings" | "contributions" | "loans" | "all";
@@ -293,7 +293,7 @@ export default function StatementPage() {
                   <strong>Member:</strong> {row.member.name}
                 </p>
                 <p className="capitalize">
-                  <strong>Transaction type:</strong> {row.type.replace(/_/g, ' ')}
+                  <strong>Transaction type:</strong> {row.type.replace(/_/g, " ")}
                 </p>
                 <p>
                   <strong>Transaction Date:</strong> {new Date(row.date).toLocaleDateString()}

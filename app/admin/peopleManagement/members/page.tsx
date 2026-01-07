@@ -88,7 +88,8 @@ export default function MembersPage() {
     const baseOptions: TableActionOption[] = [
       { key: "view", label: "View Details" },
       { key: "edit", label: "Edit" },
-      { key: "delete", label: "Delete" },
+      // Temporarily disabled delete action
+      // { key: "delete", label: "Delete" },
     ];
 
     if (row.status === "pending") {
@@ -285,6 +286,7 @@ export default function MembersPage() {
       case "edit":
         openModal("form", { member: row });
         break;
+      /*
       case "delete":
         openModal("confirm", {
           message: `Are you sure you want to delete ${row.firstName} ${row.surname}?`,
@@ -293,6 +295,7 @@ export default function MembersPage() {
           },
         });
         break;
+      */
       case "approve":
         openModal("confirm", {
           message: `Approve member ${row.firstName} ${row.surname}?`,
@@ -797,6 +800,7 @@ export default function MembersPage() {
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Approve/Reject
                       </Button>
+                      {/* Delete button temporarily disabled
                       <Button
                         onClick={() => {
                           setBulkActionType("delete");
@@ -808,6 +812,7 @@ export default function MembersPage() {
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                       </Button>
+                      */}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       {bulkActionType === "approve-reject"
@@ -849,6 +854,7 @@ export default function MembersPage() {
                               </Button>
                             </>
                           )}
+                          {/*
                           {bulkActionType === "delete" && (
                             <Button
                               onClick={handleBulkDelete}
@@ -860,6 +866,7 @@ export default function MembersPage() {
                               Delete Selected
                             </Button>
                           )}
+                          */}
                           <Button
                             onClick={() => {
                               setSelectedMemberIds([]);

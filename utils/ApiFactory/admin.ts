@@ -11,6 +11,8 @@ import {
   MembersApiResponse,
   paymentApproveOrRejectType,
   PaymentApproveRejectResponse,
+  GenerateOrganizationStatementParams,
+  GenerateStatementResponse,
 } from "@/types/types";
 
 import { fetchWrapper } from "@/utils/handleAppErr";
@@ -182,29 +184,6 @@ export const getAdminBalanceFn = async (orgId: string) => {
 };
 
 export const getCooperativeSummaryFn = async (orgId: string) => {
-  // if (!orgId) throw new Error("Organization ID is required");
-  // const res = await fetch(`/api/admin/records/cooperativeSummary?orgId=${orgId}`, { cache: "no-store" });
-
-  // let data: any;
-  // try {
-  //   data = await res.json();
-  // } catch {
-  //   throw new Error("Failed to parse cooperative summary response");
-  // }
-
-  // if (!res.ok) {
-  //   const msg =
-  //     data?.error ||
-  //     data?.message ||
-  //     (Array.isArray(data?.errors) && data.errors.join(", ")) ||
-  //     "Failed to load cooperative summary";
-  //   const err = new Error(msg);
-  //   (err as any).status = res.status;
-  //   throw err;
-  // }
-
-  // return data;
-
   const res = await fetch(`/api/admin/records/cooperativeSummary?orgId=${orgId}`, { cache: "no-store" });
   const data = await res.json();
 
@@ -327,13 +306,56 @@ export const getTransactionHistoryFn = async ({
   params.set("type", type || "all");
   params.set("page", String(page + 1));
   params.set("limit", String(limit));
-  const res = await fetch(`/api/admin/records/transactionHistory?${params.toString()}`);
+  const res = await fetch(`/api/admin/financials/newPendingPayments?${params.toString()}`);
   const data = await res.json();
   if (!res.ok) {
     const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "An unknown error occured";
     throw new Error(msg);
   }
   return data;
+};
+
+// Generate Organization Statement (for org_admin role)
+export const generateOrganizationStatementFn = async (
+  orgId: string,
+  params: Omit<GenerateOrganizationStatementParams, "orgId">
+): Promise<GenerateStatementResponse> => {
+  const search = new URLSearchParams();
+  if (params.startDate) search.set("startDate", params.startDate);
+  if (params.endDate) search.set("endDate", params.endDate);
+  if (params.type) search.set("type", params.type);
+  if (typeof params.status !== "undefined" && params.status !== null && params.status !== "")
+    search.set("status", params.status as string);
+  if (params.exportType) search.set("exportType", params.exportType);
+
+  const finalUrl = `/api/admin/records/organizationStatement?orgId=${orgId}&${search.toString()}`;
+
+  // Initiate request to proxy route which will stream the file back
+  const res = await fetch(finalUrl);
+
+  if (!res.ok) {
+    let errData: any = null;
+    try {
+      errData = await res.json();
+    } catch (_) {}
+    const msg =
+      errData?.message || errData?.error || `Failed to generate organization statement (status ${res.status})`;
+    throw new Error(msg);
+  }
+
+  const arrayBuffer = await res.arrayBuffer();
+  const contentType = res.headers.get("content-type") || undefined;
+  const disposition = res.headers.get("content-disposition") || "";
+  let filename: string | undefined;
+  const match = disposition.match(/filename\*?=\s*(?:UTF-8''?)?"?([^";]+)"?/i);
+  if (match) filename = decodeURIComponent(match[1]);
+  else filename = params.exportType === "csv" ? "organization-statement.csv" : "organization-statement.pdf";
+
+  const blob = new Blob([arrayBuffer], {
+    type: contentType || (params.exportType === "csv" ? "text/csv" : "application/pdf"),
+  });
+
+  return { blob, filename, contentType };
 };
 
 export const getNewPendingPaymentFn = async ({

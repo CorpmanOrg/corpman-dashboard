@@ -111,7 +111,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "//Update only withdrawal processing:\n//   {\n//     \"savingsMaxDays\": 3,\n//     \"contributionMaxDays\": 90\n//   }\n\n  //Update only interest rate:\n  {\n    \"interestRate\": 2\n  }\n\n  // Update all loan settings:\n//   {\n//     \"contributionMultiplier\": 2.5,\n//     \"interestRate\": 6,\n//     \"maxLoanDurationMonths\": 18\n//   }",
+							"raw": "//Update only withdrawal processing:\n//   {\n//     \"savingsMaxDays\": 3,\n//     \"contributionMaxDays\": 90\n//   }\n\n  //Update only interest rate:\n  {\n    \"interestRate\": 2,\n    \"paymentMode\": \"manual\" \n  }\n\n  // Update all loan settings:\n//   {\n//     \"contributionMultiplier\": 2.5,\n//     \"interestRate\": 6,\n//     \"maxLoanDurationMonths\": 18\n//   }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -525,6 +525,115 @@
 					"response": []
 				},
 				{
+					"name": "Export History To CSV",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}payment/organization/:orgId/export/csv?type=contribution_deposit",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								"organization",
+								":orgId",
+								"export",
+								"csv"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "contribution_deposit",
+									"description": " savings_deposit || savings_withdrawal || contribution_deposit || contribution_withdrawal || loan || loan_repayment || organization_fund_deposit"
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "695adba05b135b3d1b7b002e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Organization Statement",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}payment/organization/:orgId/export?status=all&exportType=csv&startDate=2026-01-01&endDate=2026-01-05",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								"organization",
+								":orgId",
+								"export"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "all",
+									"description": "pending || approved || rejected"
+								},
+								{
+									"key": "type",
+									"value": "savings_withdrawal",
+									"description": " savings_deposit || savings_withdrawal || contribution_deposit || contribution_withdrawal || loan || loan_repayment || organization_fund_deposit",
+									"disabled": true
+								},
+								{
+									"key": "exportType",
+									"value": "csv",
+									"description": "csv || pdf"
+								},
+								{
+									"key": "startDate",
+									"value": "2026-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2026-01-05"
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "695adba05b135b3d1b7b002e"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Organization Signup",
 					"request": {
 						"method": "POST",
@@ -661,6 +770,60 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Generate Member Statement",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}payment/export?exportType=pdf&startDate=2026-01-01&endDate=2026-01-05",
+							"host": [
+								"{{BASE_URL}}payment"
+							],
+							"path": [
+								"export"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "all",
+									"description": "pending || approved || rejected",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "savings_withdrawal",
+									"description": " savings_deposit || savings_withdrawal || contribution_deposit || contribution_withdrawal || loan || loan_repayment || organization_fund_deposit",
+									"disabled": true
+								},
+								{
+									"key": "exportType",
+									"value": "pdf",
+									"description": "csv || pdf"
+								},
+								{
+									"key": "startDate",
+									"value": "2026-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2026-01-05"
+								}
+							]
+						}
+					},
+					"response": []
 				},
 				{
 					"name": "Request To Join Organization",
@@ -879,6 +1042,76 @@
 							],
 							"path": [
 								"balances"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Member Profile",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{BASE_URL}}member/profile",
+							"host": [
+								"{{BASE_URL}}member"
+							],
+							"path": [
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Member Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Olawole\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}member/profile",
+							"host": [
+								"{{BASE_URL}}member"
+							],
+							"path": [
+								"profile"
 							]
 						}
 					},

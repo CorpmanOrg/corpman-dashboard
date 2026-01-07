@@ -12,15 +12,16 @@ export interface SelectProps {
   className?: string;
 }
 
-export type StatementFilterProps = {
+export type CustomFilterProps = {
   filters: {
-    type?: "credit" | "debit";
+    // allow backend-driven values for this specialized filter
+    type?: string;
     minAmount?: number;
     maxAmount?: number;
     startDate?: string;
     endDate?: string;
   };
-  onChange: (filters: StatementFilterProps["filters"]) => void;
+  onChange: (filters: CustomFilterProps["filters"]) => void;
 };
 
 export function Select({ value, onValueChange, options, placeholder, className }: SelectProps) {
@@ -40,34 +41,23 @@ export function Select({ value, onValueChange, options, placeholder, className }
   );
 }
 
-export function StatementFilterBar({ filters, onChange }: StatementFilterProps) {
+export function CustomFilterBar({ filters, onChange }: CustomFilterProps) {
   return (
     <div className="flex gap-2 flex-wrap mb-4">
       <Select
         value={filters.type ?? ""}
-        onValueChange={(v) => onChange({ ...filters, type: v as "credit" | "debit" })}
+        onValueChange={(v) => onChange({ ...filters, type: v })}
         placeholder="Select type"
         options={[
           { label: "All", value: "" },
-          { label: "Credit", value: "credit" },
-          { label: "Debit", value: "debit" },
+          { label: "Savings (Deposit)", value: "savings_deposit" },
+          { label: "Savings (Withdrawal)", value: "savings_withdrawal" },
+          { label: "Contribution (Deposit)", value: "contribution_deposit" },
+          { label: "Contribution (Withdrawal)", value: "contribution_withdrawal" },
         ]}
-        className="min-w-[140px] rounded-md p-1 bg-[#fff] dark:bg-[#071121ff] border border-[#e5e7eb] dark:border-[#222c3c]"
+        className="min-w-[240px] rounded-md p-1 bg-[#fff] dark:bg-[#071121ff] border border-[#e5e7eb] dark:border-[#222c3c]"
       />
-      {/* <Input
-        name="minAmount"
-        type="number"
-        placeholder="Min Amount"
-        value={filters.minAmount ?? ""}
-        onChange={(e) => onChange({ ...filters, minAmount: Number(e.target.value) })}
-      />
-      <Input
-        name="maxAmount"
-        type="number"
-        placeholder="Max Amount"
-        value={filters.maxAmount ?? ""}
-        onChange={(e) => onChange({ ...filters, maxAmount: Number(e.target.value) })}
-      /> */}
+
       <Input
         name="startDate"
         type="date"
@@ -80,9 +70,12 @@ export function StatementFilterBar({ filters, onChange }: StatementFilterProps) 
         value={filters.endDate ?? ""}
         onChange={(e) => onChange({ ...filters, endDate: e.target.value })}
       />
+
       <Button variant="outline" onClick={() => onChange({})}>
         Reset
       </Button>
     </div>
   );
 }
+
+export default CustomFilterBar;

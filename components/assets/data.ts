@@ -12,6 +12,8 @@ import {
   MemberWithActions,
   TransactionHistoryProps,
   SettingsFormValues,
+  MemberPaymentHistory,
+  GenerateMemberStatementParams,
 } from "@/types/types";
 import { Home, Users, DollarSign, FileText, Settings, LogOut } from "lucide-react";
 import {} from "@/types/types";
@@ -41,6 +43,14 @@ export const SettingsInitialValues: SettingsFormValues = {
   maxLoanDuration: null,
   minimumContributionMonths: null,
   paymentMode: "",
+};
+
+export const MemberStatementInitialValues: GenerateMemberStatementParams = {
+  startDate: "",
+  endDate: "",
+  type: "",
+  status: "",
+  exportType: undefined,
 };
 
 export const Dummy_Memebers_Column: Column<MemberWithActions & { sn: number }>[] = [
@@ -1043,7 +1053,7 @@ export const PaymentColumn: Column<TransactionHistoryProps & { sn: number }>[] =
   },
   {
     id: "type",
-    label: "Transaction Type",
+    label: "Transactions Type",
     minWidth: 140,
     format: (v) => {
       if (!v) return "";
@@ -1103,6 +1113,118 @@ export const PaymentColumn: Column<TransactionHistoryProps & { sn: number }>[] =
     },
   },
   { id: "amount", label: "Amount", minWidth: 120, format: (v) => `₦${v.toLocaleString()}` },
+  {
+    id: "status",
+    label: "Status",
+    minWidth: 120,
+    format: (v) => {
+      const getStatusConfig = (status: string) => {
+        switch (status) {
+          case "pending":
+            return {
+              bgClass: "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20",
+              textClass: "text-amber-700 dark:text-amber-300",
+              borderClass: "border border-amber-200 dark:border-amber-700/50",
+            };
+          case "approved":
+            return {
+              bgClass: "bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20",
+              textClass: "text-emerald-700 dark:text-emerald-300",
+              borderClass: "border border-emerald-200 dark:border-emerald-700/50",
+            };
+          case "rejected":
+            return {
+              bgClass: "bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20",
+              textClass: "text-rose-700 dark:text-rose-300",
+              borderClass: "border border-rose-200 dark:border-rose-700/50",
+            };
+          default:
+            return {
+              bgClass: "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20",
+              textClass: "text-gray-700 dark:text-gray-300",
+              borderClass: "border border-gray-200 dark:border-gray-700/50",
+            };
+        }
+      };
+      const config = getStatusConfig(v);
+      return React.createElement(
+        "span",
+        {
+          className: `inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all duration-200 hover:scale-105 ${config.bgClass} ${config.textClass} ${config.borderClass}`,
+        },
+        v
+      );
+    },
+  },
+  { id: "description", label: "Description", minWidth: 180 },
+  { id: "createdAt", label: "Date", minWidth: 120, format: (v) => new Date(v).toLocaleDateString() },
+  { id: "ActionButton", label: "Actions", align: "center", minWidth: 120 },
+];
+
+export const MemberPaymentHistoryColumn: Column<MemberPaymentHistory & { sn: number }>[] = [
+  { id: "sn", label: "S/N", minWidth: 60 },
+  { id: "amount", label: "Amount", minWidth: 120, format: (v) => `₦${v.toLocaleString()}` },
+  {
+    id: "type",
+    label: "Transactions Type",
+    minWidth: 140,
+    format: (v) => {
+      if (!v) return "";
+      const raw = String(v).toLowerCase();
+      const parts = raw.split(/[_-]/).filter(Boolean);
+      if (parts.length === 0) return v;
+
+      const categoryRaw = parts[0];
+      const categoryMap: Record<string, string> = {
+        savings: "Savings",
+        contribution: "Contributions",
+        loan: "Loan",
+      };
+
+      const cat = categoryMap[categoryRaw] || categoryRaw.charAt(0).toUpperCase() + categoryRaw.slice(1);
+
+      // 🎨 Color mapping for each category
+      const colorMap: Record<string, string> = {
+        savings: "text-blue-600 dark:text-blue-400",
+        contribution: "text-green-600 dark:text-green-400",
+        loan: "text-purple-600 dark:text-purple-400",
+      };
+
+      const colorClass = colorMap[categoryRaw] || "text-slate-600 dark:text-slate-300";
+
+      return React.createElement(
+        "span",
+        {
+          className: `font-semibold ${colorClass}`,
+        },
+        cat
+      );
+    },
+  },
+  {
+    id: "type",
+    label: "Type",
+    minWidth: 120,
+    format: (v, row) => {
+      // Accept either a normalized type ("credit"/"debit") or a raw token like "savings_deposit"
+      const rawType = (row?.type ?? v) as any;
+      if (!rawType) return "-";
+      const type = String(rawType).toLowerCase();
+
+      let transactionLabel = "—";
+      if (type === "credit" || type.includes("deposit") || type.includes("repayment")) transactionLabel = "Credit";
+      else if (type === "debit" || type.includes("withdrawal") || type.includes("disbursement"))
+        transactionLabel = "Debit";
+
+      const badgeClass =
+        "inline-block px-4 py-1 rounded-xl font-semibold text-[0.95rem] border " +
+        (transactionLabel.toLowerCase() === "credit"
+          ? "bg-[#e6f9ed] text-[#166534] border-[#b6f2d7] dark:bg-green-900/40 dark:text-green-200 dark:border-green-700"
+          : "bg-[#fdeaea] text-[#991b1b] border-[#f5c2c7] dark:bg-red-900/40 dark:text-red-200 dark:border-red-700");
+
+      return React.createElement("span", { className: badgeClass }, transactionLabel);
+    },
+  },
   {
     id: "status",
     label: "Status",

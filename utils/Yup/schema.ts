@@ -139,6 +139,33 @@ export const SettingsSchema = Yup.object({
     ),
 });
 
+export const MemberStatementSchema = Yup.object({
+  startDate: Yup.string()
+    .required("Start date is required")
+    .test("is-date", "Start date must be a valid date", (val) => !!val && !isNaN(Date.parse(val))),
+
+  endDate: Yup.string()
+    .required("End date is required")
+    .test("is-date", "End date must be a valid date", (val) => !!val && !isNaN(Date.parse(val)))
+    .test("is-after", "End date must be the same or after start date", function (value) {
+      const { startDate } = this.parent as any;
+      if (!startDate || !value) return true;
+      try {
+        return new Date(value) >= new Date(startDate);
+      } catch {
+        return false;
+      }
+    }),
+
+  type: Yup.string().required("Transaction type is required"),
+
+  status: Yup.string()
+    .required("Status is required")
+    .oneOf(["all", "pending", "approved", "rejected"], "Invalid status option"),
+
+  exportType: Yup.string().required("Export type is required").oneOf(["pdf", "csv"], "Invalid export type"),
+});
+
 // Helper validator that enforces: if an initially-non-empty field becomes empty, return an error.
 export async function validateSettingsWithInitial(values: any, initialValues: any) {
   const errors: Record<string, string> = {};
