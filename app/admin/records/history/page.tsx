@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import {
   Statement,
   TableActionOption,
@@ -29,7 +29,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 type MemberPaymentHistoryRow = MemberPaymentHistory & { id: string; ActionButton: string; sn: number };
 
-export default function History() {
+function HistoryContent() {
   const searchParams = useSearchParams();
 
   const initialStatus = (() => {
@@ -277,6 +277,32 @@ export default function History() {
           />
         </>
       )}
+    </div>
+  );
+}
+
+export default function History() {
+  return (
+    <Suspense fallback={<HistoryLoadingFallback />}>
+      <HistoryContent />
+    </Suspense>
+  );
+}
+
+function HistoryLoadingFallback() {
+  return (
+    <div className="p-4 space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        ))}
+      </div>
+      <div className="mb-4 flex gap-2">
+        <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+      </div>
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+      <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
     </div>
   );
 }
