@@ -1,12 +1,20 @@
-import React from "react";
-import { PaymentModalProps } from "@/types/payment.types";
+import React, { useEffect, useState, useRef } from "react";
+import { PaymentMethod, PaymentMethodId, PaymentModalProps, PaymentStep } from "@/types/payment.types";
+import { LucideIcon } from "lucide-react";
+import { Building, Wallet, X, Lock } from "lucide-react";
+import { gatewayManager } from "@/utils/PaymentGateway/GatewayManager";
+import BulkTransferForm from "./BulkTransferForm";
 
 // PaymentModal temporarily disabled — original implementation moved to VCS.
 // Re-enable by restoring the previous implementation from history.
 
-const PaymentModal: React.FC<PaymentModalProps> = () => {
-  return null;
-};
+const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, paymentData }) => {
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod["id"] | null>(null);
+  const [paymentStep, setPaymentStep] = useState<PaymentStep>("methods");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [countdownTime, setCountdownTime] = useState<number>(300);
+  const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
+  const [availableGateways, setAvailableGateways] = useState<any[]>([]);
   const [isCountdownActive, setIsCountdownActive] = useState<boolean>(false);
 
   // ✅ User confirmation flow ("I have made payment")
@@ -245,7 +253,7 @@ const PaymentModal: React.FC<PaymentModalProps> = () => {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-50 via-white to-gray-50/80 dark:from-gray-900/80 dark:via-gray-800 dark:to-gray-900/60 border-b border-gray-200/40 dark:border-gray-700/40">
           <div className="flex items-center gap-3">
-            <img src={FaviconLogo} alt="Providus Logo" className="w-6 h-6" />
+            <img src="/favicon.ico" alt="Providus Logo" className="w-6 h-6" />
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Secured by Providus</span>
               <span className="text-xs text-gray-500 dark:text-gray-400">Enterprise Payment Gateway</span>
