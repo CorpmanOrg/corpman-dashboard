@@ -87,7 +87,7 @@ function PageLoading() {
 // Main component that uses useSearchParams
 function ContributionsPaymentsContent() {
   const { modal, openModal, closeModal } = useModal();
-  const { selectedOrganization, activeOrgId, activeContext } = useAuth();
+  const { selectedOrganization, activeOrgId, activeContext, currentOrgId } = useAuth();
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
