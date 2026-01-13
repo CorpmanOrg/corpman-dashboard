@@ -16,12 +16,12 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function GenerateStatement({ autoOpen }: { autoOpen?: boolean }) {
   const { toast } = useToast();
-  const { currentRole, currentOrgId } = useAuth();
+  const { activeContext, activeOrgId } = useAuth();
 
   const [open, setOpen] = useState(false);
 
   // Determine if user is admin
-  const isAdmin = currentRole === "org_admin";
+  const isAdmin = activeContext === "org_admin";
 
   useEffect(() => {
     if (autoOpen) setOpen(true);
@@ -35,8 +35,8 @@ export default function GenerateStatement({ autoOpen }: { autoOpen?: boolean }) 
   // Organization Statement Mutation (for org_admin)
   const orgMutation = useMutation<GenerateStatementResponse, Error, Omit<GenerateMemberStatementParams, "orgId">>({
     mutationFn: async (params) => {
-      if (!currentOrgId) throw new Error("Organization ID not found");
-      return generateOrganizationStatementFn(currentOrgId, params);
+      if (!activeOrgId) throw new Error("Organization ID not found");
+      return generateOrganizationStatementFn(activeOrgId, params);
     },
   });
 
@@ -58,13 +58,13 @@ export default function GenerateStatement({ autoOpen }: { autoOpen?: boolean }) 
       >
         <div className="w-full">
           {/* Role-based information banner */}
-          {isAdmin && !currentOrgId && (
+          {isAdmin && !activeOrgId && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
               ⚠️ Organization ID not found. Please ensure you're logged in as an admin.
             </div>
           )}
 
-          {isAdmin && currentOrgId && (
+          {isAdmin && activeOrgId && (
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
               ℹ️ Generating organization-wide statement for all members in your organization.
             </div>
@@ -218,7 +218,7 @@ export default function GenerateStatement({ autoOpen }: { autoOpen?: boolean }) 
                   <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending} type="button">
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={formik.isSubmitting || isPending || (isAdmin && !currentOrgId)}>
+                  <Button type="submit" disabled={formik.isSubmitting || isPending || (isAdmin && !activeOrgId)}>
                     {isPending || formik.isSubmitting ? "Generating..." : "Generate Statement"}
                   </Button>
                 </div>

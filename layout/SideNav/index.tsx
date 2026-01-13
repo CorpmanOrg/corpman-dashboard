@@ -131,7 +131,7 @@ export function SideNav() {
   const [activeItem, setActiveItem] = useState("dashboard");
   const [expandedCategories, setExpandedCategories] = useState(["people"]);
   const pathname = usePathname();
-  const { user, currentRole } = useAuth();
+  const { user, activeContext } = useAuth();
 
   // Deep clone utility for menu
   function deepCloneMenu(menu: typeof SidebarMenuInit): typeof SidebarMenuInit {
@@ -174,7 +174,7 @@ export function SideNav() {
 
   const memberMenu = deepCloneMenu(SidebarMenuInit).filter((item: (typeof SidebarMenuInit)[number]) => {
     if (item.type === "item") {
-      return ["dashboard", "settings", "logout"].includes(item.key);
+      return ["dashboard", "logout"].includes(item.key);
     }
     if (item.type === "category") {
       if (item.key === "financials") {
@@ -191,7 +191,7 @@ export function SideNav() {
     return false;
   });
 
-  const menuToRender = currentRole === "org_admin" ? adminMenu : memberMenu;
+  const menuToRender = activeContext === "org_admin" ? adminMenu : memberMenu;
 
   // 🔥 FIX: Auto-detect active item based on pathname
   useEffect(() => {

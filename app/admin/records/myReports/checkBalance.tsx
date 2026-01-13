@@ -35,7 +35,7 @@ const formatMoney = (n: number | undefined) =>
   (typeof n === "number" ? n : 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const CheckBalance: React.FC = () => {
-  const { currentRole, currentOrgId } = useAuth();
+  const { activeContext, activeOrgId } = useAuth();
   const queryClient = useQueryClient();
 
   const {
@@ -45,9 +45,9 @@ const CheckBalance: React.FC = () => {
     error: adminError,
     refetch: refetchAdmin,
   } = useQuery({
-    queryKey: ["admin-balance", currentOrgId],
-    queryFn: () => getAdminBalanceFn(currentOrgId!),
-    enabled: currentRole === "org_admin" && !!currentOrgId,
+    queryKey: ["admin-balance", activeOrgId],
+    queryFn: () => getAdminBalanceFn(activeOrgId!),
+    enabled: activeContext === "org_admin" && !!activeOrgId,
     staleTime: 30_000,
   });
 
@@ -60,14 +60,14 @@ const CheckBalance: React.FC = () => {
   } = useQuery({
     queryKey: ["member-balance"],
     queryFn: () => getMembersBalanceFn(),
-    enabled: currentRole === "member",
+    enabled: activeContext === "member",
     staleTime: 30_000,
   });
 
-  const active = currentRole === "member" ? pickFirst(memberRaw) : pickFirst(adminRaw);
-  const loading = currentRole === "member" ? memberLoading : adminLoading;
-  const fetching = currentRole === "member" ? memberFetching : adminFetching; // includes background refetch
-  const errorObj = currentRole === "member" ? memberError : adminError;
+  const active = activeContext === "member" ? pickFirst(memberRaw) : pickFirst(adminRaw);
+  const loading = activeContext === "member" ? memberLoading : adminLoading;
+  const fetching = activeContext === "member" ? memberFetching : adminFetching; // includes background refetch
+  const errorObj = activeContext === "member" ? memberError : adminError;
 
   const balances = useMemo(() => {
     const b = active?.balances || {};
@@ -79,7 +79,7 @@ const CheckBalance: React.FC = () => {
   }, [active]);
 
   const onManualRefresh = () => {
-    if (currentRole === "member") refetchMember();
+    if (activeContext === "member") refetchMember();
     else refetchAdmin();
   };
 
@@ -89,7 +89,7 @@ const CheckBalance: React.FC = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-emerald-600" />
-            <CardTitle className="text-lg">{currentRole === "member" ? "Member" : "Organization"} Balance</CardTitle>
+            <CardTitle className="text-lg">{activeContext === "member" ? "Member" : "Organization"} Balance</CardTitle>
           </div>
           <CardDescription className="text-sm">
             {loading && !active && "Fetching balance..."}

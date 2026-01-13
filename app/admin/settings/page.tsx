@@ -12,21 +12,21 @@ import { getSettingsFn, updateSettingsFn } from "@/utils/ApiFactory/settings";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
-  const { currentOrgId } = useAuth();
+  const { activeOrgId } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Fetch settings when the page loads
   const { data, error, isLoading, refetch } = useQuery({
-    queryKey: ["organization-settings", currentOrgId],
-    queryFn: () => getSettingsFn(currentOrgId as string),
-    enabled: !!currentOrgId,
+    queryKey: ["organization-settings", activeOrgId],
+    queryFn: () => getSettingsFn(activeOrgId as string),
+    enabled: !!activeOrgId,
   });
 
   // Mutation for updating settings
   const updateMutation = useMutation({
     mutationFn: (payload: Partial<SettingsFormValues>) =>
-      updateSettingsFn(payload as SettingsFormValues, currentOrgId as string),
+      updateSettingsFn(payload as SettingsFormValues, activeOrgId as string),
     onSuccess: async (response) => {
       toast({
         title: "Settings updated",

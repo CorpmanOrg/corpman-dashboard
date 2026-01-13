@@ -1,6 +1,7 @@
 "use-client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { StorageUtil } from "@/utils/StorageUtil";
 import { UserData } from "@/types/types";
 
@@ -17,6 +18,8 @@ interface LogData {
   organization: LoggedData;
 }
 
+type ActiveContext = "member" | "org_admin";
+
 interface AuthContextType {
   user: UserData | null;
   loading: boolean;
@@ -32,6 +35,12 @@ interface AuthContextType {
   isMemberAdmin?: String;
   isMember?: String;
   userLoggedData?: LogData | null;
+  // Active Context (NEW)
+  activeContext: ActiveContext;
+  activeOrgId: string | null;
+  hasAdminRole: boolean;
+  switchToMember: () => void;
+  switchToOrg: (orgId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -48,15 +57,39 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: "admin",
   isMemberAdmin: "memberAdmin",
   isMember: "member",
+  // Active Context defaults
+  activeContext: "member",
+  activeOrgId: null,
+  hasAdminRole: false,
+  switchToMember: () => {},
+  switchToOrg: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [userLoggedData, setUserLoggedData] = useState<LogData | null>(null);
   const [isLoggedOut, setIsLoggedOut] = useState<boolean>(false);
-  // const [userLoggedLoading, setUserLoggedLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
+
+  // Active Context State (NEW)
+  const [activeContext, setActiveContext] = useState<ActiveContext>(() => {
+    // Load from localStorage on mount
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("activeContext");
+      return (stored as ActiveContext) || "member";
+    }
+    return "member";
+  });
+
+  const [activeOrgId, setActiveOrgId] = useState<string | null>(() => {
+    // Load from localStorage on mount
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("activeOrgId");
+    }
+    return null;
+  });
 
   const getUser = useCallback(async () => {
     if (isLoggedOut) return;
@@ -99,7 +132,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     getUser();
   }, [getUser]);
-  
 
   useEffect(() => {
     if (user?.user?.organizations?.length && !selectedOrgId) {
@@ -108,9 +140,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user, selectedOrgId]);
 
   const selectedOrganization = user?.user?.organizations?.find((org) => org.organizationId === selectedOrgId) || null;
-  
+
   const currentRole = selectedOrganization?.role || null;
   const currentOrgId = selectedOrganization?.organizationId || null;
+
+  // Parse hasAdminRole from role string (e.g., "org_admin,member" or "member")
+  const hasAdminRole = currentRole?.includes("org_admin") ?? false;
+
+  // Switch to Member Context
+  const switchToMember = useCallback(() => {
+    setActiveContext("member");
+    setActiveOrgId(null);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("activeContext", "member");
+      localStorage.removeItem("activeOrgId");
+    }
+    // Always redirect to dashboard on context switch
+    router.push("/admin/dashboard");
+  }, [router]);
+
+  // Switch to Organization Context
+  const switchToOrg = useCallback(
+    (orgId: string) => {
+      setActiveContext("org_admin");
+      setActiveOrgId(orgId);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("activeContext", "org_admin");
+        localStorage.setItem("activeOrgId", orgId);
+      }
+      // Always redirect to dashboard on context switch
+      router.push("/admin/dashboard");
+    },
+    [router]
+  );
+
+  // Set default context when user logs in (admins default to org_admin)
+  useEffect(() => {
+    if (user && currentRole) {
+      // Only set default if not already in localStorage
+      const storedContext = typeof window !== "undefined" ? localStorage.getItem("activeContext") : null;
+
+      if (!storedContext) {
+        if (currentRole.includes("org_admin") && currentOrgId) {
+          switchToOrg(currentOrgId);
+        } else {
+          switchToMember();
+        }
+      } else {
+        // Sync state with localStorage on mount
+        if (storedContext === "org_admin" && currentOrgId) {
+          setActiveContext("org_admin");
+          const storedOrgId = localStorage.getItem("activeOrgId");
+          if (storedOrgId) {
+            setActiveOrgId(storedOrgId);
+          }
+        }
+      }
+    }
+  }, [user, currentRole, currentOrgId, switchToOrg, switchToMember]);
 
   return (
     <AuthContext.Provider
@@ -124,6 +211,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         userLoggedData,
         currentRole,
         currentOrgId,
+        // Active Context values
+        activeContext,
+        activeOrgId,
+        hasAdminRole,
+        switchToMember,
+        switchToOrg,
       }}
     >
       {children}

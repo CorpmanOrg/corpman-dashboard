@@ -20,7 +20,7 @@ import { useState, useEffect } from "react";
 import { useLoading } from "@/context/LoadingContext";
 
 export default function Dashboard() {
-  const { currentRole, currentOrgId } = useAuth();
+  const { activeContext, activeOrgId, currentOrgId } = useAuth();
   const { setLoading } = useLoading();
   const [componentsLoading, setComponentsLoading] = useState(true);
 
@@ -49,9 +49,9 @@ export default function Dashboard() {
     error: adminError,
     refetch: refetchAdmin,
   } = useQuery({
-    queryKey: ["admin-balance", currentOrgId],
-    queryFn: () => getAdminBalanceFn(currentOrgId!),
-    enabled: currentRole === "org_admin" && !!currentOrgId,
+    queryKey: ["admin-balance", activeOrgId],
+    queryFn: () => getAdminBalanceFn(activeOrgId!),
+    enabled: activeContext === "org_admin" && !!activeOrgId,
     staleTime: 60_000,
     select: (raw) => raw?.organization ?? null,
   });
@@ -65,14 +65,14 @@ export default function Dashboard() {
   } = useQuery({
     queryKey: ["member-balance"],
     queryFn: () => getMembersBalanceFn(),
-    enabled: currentRole === "member",
+    enabled: activeContext === "member",
     staleTime: 60_000,
     select: (raw) => (Array.isArray(raw) && raw.length > 0 ? raw[0] : null),
   });
 
-  const activeData = currentRole === "member" ? memberData : adminData;
-  const initialLoading = currentRole === "member" ? memberLoading && !memberData : adminLoading && !adminData;
-  const backgroundFetching = currentRole === "member" ? memberFetching && !!memberData : adminFetching && !!adminData;
+  const activeData = activeContext === "member" ? memberData : adminData;
+  const initialLoading = activeContext === "member" ? memberLoading && !memberData : adminLoading && !adminData;
+  const backgroundFetching = activeContext === "member" ? memberFetching && !!memberData : adminFetching && !!adminData;
 
   const memberStats = [
     {
@@ -117,12 +117,14 @@ export default function Dashboard() {
     },
   ];
 
-  const errorObj = currentRole === "member" ? memberError : adminError;
+  const errorObj = activeContext === "member" ? memberError : adminError;
 
   if (process.env.NODE_ENV === "development") {
     // eslint-disable-next-line no-console
-    console.debug("Balance snapshot", { role: currentRole, activeData, initialLoading, backgroundFetching });
+    console.debug("Balance snapshot", { role: activeContext, activeData, initialLoading, backgroundFetching });
   }
+
+  console.log("Dashboard Data: ", {activeOrgId, activeContext, currentOrgId})
 
   return (
     <TooltipProvider>
@@ -133,7 +135,7 @@ export default function Dashboard() {
               <div className="mx-6 mb-2 rounded border border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs px-3 py-2 flex items-center justify-between">
                 <span className="truncate">Failed to load balances. {(errorObj as any)?.message || ""}</span>
                 <button
-                  onClick={() => (currentRole === "member" ? refetchMember() : refetchAdmin())}
+                  onClick={() => (activeContext === "member" ? refetchMember() : refetchAdmin())}
                   className="ml-3 inline-flex items-center px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-medium"
                 >
                   Retry
@@ -141,7 +143,7 @@ export default function Dashboard() {
               </div>
             )}
             <MainStatisticsCard
-              stats={(currentRole === "member" ? memberStats : adminStats) as any}
+              stats={(activeContext === "member" ? memberStats : adminStats) as any}
               showActivityCard={false}
               fetching={backgroundFetching}
             />

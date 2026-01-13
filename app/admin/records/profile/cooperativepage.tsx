@@ -11,13 +11,16 @@ import SettingsCard from "@/components/CooperativeProfile/SettingsCard";
 import { CooperativeSkeleton } from "@/components/CooperativeProfile/Skeletons";
 
 export default function CooperativeProfile() {
-  const { currentOrgId } = useAuth();
+  const { activeOrgId, currentOrgId, selectedOrgId } = useAuth();
   const { toast } = useToast();
 
+  // Use activeOrgId if in admin context, otherwise use currentOrgId or selectedOrgId
+  const orgId = activeOrgId || currentOrgId || selectedOrgId;
+
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["cooperative-summary", currentOrgId],
-    queryFn: () => getCooperativeSummaryFn(currentOrgId!),
-    enabled: !!currentOrgId,
+    queryKey: ["cooperative-summary", orgId],
+    queryFn: () => getCooperativeSummaryFn(orgId!),
+    enabled: !!orgId,
     staleTime: 60_000,
   });
 
@@ -41,6 +44,8 @@ export default function CooperativeProfile() {
       </div>
     );
   }
+
+  console.log("CooperativePage: ", { dt: data, orgId, activeOrgId, currentOrgId, selectedOrgId, isLoading, isError });
 
   return (
     <div className="space-y-4">

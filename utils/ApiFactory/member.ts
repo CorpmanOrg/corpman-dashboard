@@ -48,9 +48,8 @@ export const memberPaymentFn = async (payload: deposit | (withdrawal & { type: s
 };
 
 export const getMembersHistoryFn = async ({
-  page = 1,
+  page = 0,
   limit = 10,
-  status,
   type = "",
   startDate,
   endDate,
@@ -59,64 +58,50 @@ export const getMembersHistoryFn = async ({
   endDate?: string;
 }): Promise<MembersPaymentHistoryApiResponse> => {
   const params = new URLSearchParams();
-  // ❌ STATUS REMOVED - Not sending status to API
-  // if (status === "") {
-  //   params.set("status", "all");
-  // } else if (typeof status === "string") {
-  //   params.set("status", status);
-  // }
-  if (type && type !== "savings") {
+
+  // Build query parameters
+  params.set("page", String(page + 1)); // Convert 0-indexed to 1-indexed for backend
+  params.set("limit", String(limit));
+
+  if (type && type !== "all") {
     params.set("type", type);
   }
+
   if (startDate) {
     params.set("startDate", startDate);
   }
+
   if (endDate) {
     params.set("endDate", endDate);
   }
-  params.set("page", String(page + 1));
-  params.set("limit", String(limit));
 
   const finalUrl = `/api/admin/records/history?${params.toString()}`;
 
-  // 🔍 DEBUG LOGGING - Exact payload that would be sent to backend
-  console.log("📤 [API HELPER] getMembersHistoryFn - Payload Prepared:", {
-    inputParams: { page, limit, status, type, startDate, endDate },
-    urlSearchParams: Object.fromEntries(params.entries()),
-    finalUrl,
-    timestamp: new Date().toISOString(),
+  console.log("🔍 [Member History] Fetching transaction history:", {
+    page: page + 1,
+    limit,
+    type,
+    startDate,
+    endDate,
   });
 
-  // ✅ BACKEND CALL ENABLED - Making network request
-  console.log("🌐 [API HELPER] Initiating network request...");
   const res = await fetch(finalUrl);
   const data = await res.json();
 
-  // 📥 LOG COMPLETE BACKEND RESPONSE
-  console.log("📥 [API HELPER] Backend Response Received:", {
-    status: res.status,
-    ok: res.ok,
-    statusText: res.statusText,
-    responseData: data,
-    responseStructure: {
-      hasPayments: !!data?.payments,
-      paymentsCount: data?.payments?.length || 0,
-      total: data?.total,
-      page: data?.page,
-      limit: data?.limit,
-      totalPages: data?.totalPages,
-    },
-    timestamp: new Date().toISOString(),
-  });
-
   if (!res.ok) {
-    const msg = Array.isArray(data.errors) ? data.errors.join(", ") : data.message || "An unknown error occured";
-    console.error("❌ [API HELPER] Request failed:", msg);
+    const msg = Array.isArray(data.errors)
+      ? data.errors.join(", ")
+      : data.message || "Failed to fetch transaction history";
+    console.error("❌ [Member History] Request failed:", msg);
     throw new Error(msg);
   }
 
-  // ✅ RETURNING ACTUAL DATA - UI will now populate
-  console.log("✅ [API HELPER] Returning actual data to populate UI");
+  console.log("✅ [Member History] Data received:", {
+    transactionsCount: data?.transactions?.length || data?.payments?.length || 0,
+    total: data?.total,
+    page: data?.page,
+  });
+
   return data;
 };
 

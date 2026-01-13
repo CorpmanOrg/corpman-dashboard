@@ -22,7 +22,7 @@ type MembersRow = MemberWithActions & { sn: number };
 
 export default function MembersPage() {
   const { modal, openModal, closeModal } = useModal();
-  const { user, currentRole, currentOrgId } = useAuth();
+  const { user, activeContext, activeOrgId } = useAuth();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const status: string = "";
@@ -72,15 +72,15 @@ export default function MembersPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["fetch-members-by-admin", currentOrgId, page, rowsPerPage, status],
+    queryKey: ["fetch-members-by-admin", activeOrgId, page, rowsPerPage, status],
     queryFn: () =>
       getAllMembersFn({
-        orgId: currentOrgId!,
+        orgId: activeOrgId!,
         page,
         limit: rowsPerPage,
         status,
       }),
-    enabled: !!currentOrgId,
+    enabled: !!activeOrgId,
   });
 
   function getPaginatedDummyData(page: number, rowsPerPage: number) {
@@ -231,7 +231,7 @@ export default function MembersPage() {
       <DetailsModal open={modal.type === "details"} onClose={closeModal} title={modal.data?.title}>
         {modal.data?.content}
       </DetailsModal>
-      {currentRole === "admin" && (
+      {activeContext === "org_admin" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {last5Members.map((member, idx) => (
             <StatCardOpposite
@@ -251,7 +251,7 @@ export default function MembersPage() {
           </Card>
         </div>
       )}
-      {currentRole === "member" && (
+      {activeContext === "member" && (
         <Card className="shadow-md bg-white hover:shadow-lg transition-shadow border-t-4 border-t-[#19d21f] dark:shadow-green-900/10 dark:bg-gray-900 dark:border-t-green-600">
           <CardHeader className="flex flex-row items-center justify-between pb-2 bg-[#f9fdf9] dark:bg-gray-900/50">
             <CardTitle className="text-lg font-bold text-[#0e4430] dark:text-green-400">Dispute</CardTitle>

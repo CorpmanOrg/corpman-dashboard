@@ -1,0 +1,104 @@
+100-Step UI Refactor Plan
+
+1. Repository audit: Open project, run static audit, list UI files, deps, Tailwind setup (src/, tailwind.config.js, package.json).
+2. Design goals & scope: Define objectives (visual modernization, accessibility, responsiveness, component library) and per-page/component scope.
+3. Create design system directory: Add src/design-system/ for tokens, components, utils, docs.
+4. Define color tokens: Convert Tailwind palette into tokens/CSS variables; prepare light & dark variants.
+5. Define typography tokens: Choose fonts (e.g., Inter), sizes, weights, line-heights; map to Tailwind.
+6. Define spacing & layout scale: Standardize spacing scale and container widths; add to tokens/Tailwind.
+7. Setup global styles: Create src/design-system/styles.css for variables and base styles; import into global CSS.
+8. Add web fonts: Install/configure chosen fonts and fallback stack.
+9. Upgrade Tailwind config: Refactor tailwind.config.js to use tokens, add plugins (forms, aspect-ratio), ensure content paths.
+10. Create Theme provider: Implement ThemeProvider for tokens, light/dark toggling, CSS variable switching.
+11. Design token docs: Add src/design-system/README.md documenting tokens and naming conventions.
+12. Component library scaffold: Create src/design-system/components/ for Button, Input, Card, Modal, Tooltip, Table, Badge, Avatar.
+13. Refactor Button component: Replace current Button with design-system Button supporting variants, sizes, icons, loading.
+14. Refactor Input component: Replace current Input with accessible Input supporting helperText, error state, icons, floating label.
+15. Create Form utilities: Add FormRow, Label, FieldWrapper, validation styles; integrate best practices for Formik/Yup.
+16. Refactor Select & TextArea: Implement Select and TextArea with consistent styling and accessibility.
+17. Create Card component: Implement Card with elevation, header actions, responsive padding.
+18. Create Table component: Implement accessible Table with header, zebra rows, responsive stacking, actions column.
+19. Create Modal/Dialog wrapper: Standardize modals with focus trap, animations, header/footer; replace ad-hoc usage.
+20. Create Pagination component: Accessible Pagination with prev/next, page numbers, size variants.
+21. Create Toast/Notification system: Standardize toasts (success/info/error) via react-hot-toast styling or custom system.
+22. Create Loader & skeletons: Add small spinner, full-page loader, skeletons for tables/cards.
+23. Create Icons strategy: Centralize svg/icons in src/design-system/icons/ and standardize sizing/props.
+24. Refactor Sidebar: Redesign sidebar to use tokens, accessible nav semantics, responsive patterns.
+25. Refactor Header/top bar: Create Header with profile, notifications, breadcrumb, responsive behavior.
+26. Implement responsive grid system: Add Grid helper and replace ThreeColumnGrid with responsive grid utility.
+27. Refactor Loader usage: Replace ad-hoc Loader imports with design-system loader and skeletons across pages.
+28. Refactor Login page UI: Modernize login form with new inputs, buttons, error states; use LoginLayout visuals.
+29. Refactor Login layout: Update LoginLayout to use new background, typography, and responsive image handling.
+30. Refactor Dashboard layout: Replace DashboardLayout with layout using Header, Sidebar, Container, transitions.
+31. Refactor Request list page: Update Dashboard.jsx and RequestTable.jsx to use new Table, filters, controls.
+32. Refactor Request details page: Update RequestDetail.jsx to use DataFormat, Card, consistent actions, and viewer modal.
+33. Refactor Modals: Replace all components/Modals/* with design-system Modal wrapper and standardized forms.
+34. Refactor shared components: Update components/shared/* (Confirm, Container, Pagination, StatusFilter) to new styles.
+35. Refactor Tables across app: Replace ReportTable, LimitTable, BlacklistedRequestTable with Table variants.
+36. Refactor Forms & validation: Standardize form layouts, error displays, Formik integration across all forms.
+37. Accessible labels & ARIA: Add ARIA attributes, roles, keyboard navigation, and ensure labeled inputs.
+38. Responsive breakpoints tuning: Adjust Tailwind breakpoints and verify layouts on mobile/tablet/desktop.
+39. Replace inline buttons: Swap ad-hoc buttons in pages with design-system Button variants.
+40. Add hover & focus states: Ensure interactive elements have defined hover, focus, active states.
+41. Standardize icons usage: Replace mixed icon libs with centralized exports and consistent props.
+42. Improve empty states: Design friendly empty-state illustrations and CTAs for empty lists/tables.
+43. Improve error states: Design global error banners, inline field errors, and recovery CTAs.
+44. Refactor notifications flow: Consolidate toast usage into notification system with consistent placement/styling.
+45. Add micro-interactions: Implement subtle animations for buttons, modals, table hover, toasts.
+46. Improve form performance: Debounce search inputs, lazy-load heavy components, reduce re-renders.
+47. Implement linting rules: Add ESLint rules for accessibility, import ordering, Tailwind class ordering; update scripts.
+48. Add Prettier/formatting: Add Prettier config and pre-commit hooks for consistent code style.
+49. Scaffold component Storybook (optional): Add Storybook or component showcase for visual testing.
+50. Unit tests for core components: Add basic tests for Button, Input, Modal, Table to prevent regressions.
+51. E2E tests for critical flows: Add Cypress/Playwright tests for Login, List→Detail, Create Request flows.
+52. Refactor asset management: Organize src/images/, optimize large images, and serve responsive sizes.
+53. Optimize bundle size: Audit deps, lazy-load heavy libs (flowbite, antd), remove unused packages.
+54. Accessibility audit & fixes: Run axe-core audit, fix contrast/labels/semantic markup issues.
+55. Improve keyboard navigation: Ensure sidebar, tables, modals, forms are fully keyboard-navigable.
+56. Implement dark mode (optional): Add dark theme variant using tokens and toggle in Header.
+57. Global CSS cleanup: Remove legacy styles in App.css and index.css that conflict with tokens/Tailwind.
+58. Update README & docs: Document design-system, component usage, tokens, and migration notes.
+59. Migration plan per page: Create detailed migration checklist for each page/component for safe small PRs.
+60. Create PR checklist template: Add PR template requiring accessibility checks, visual review, tests.
+61. Refactor Request modals UX: Improve blacklist/whitelist/update workflows with confirmations and progress states.
+62. Refactor file preview flow: Replace manual DOM image preview in RequestDetail.jsx with a viewer modal.
+63. Refactor Table actions menu: Use a consistent Popover/Menu component for row actions.
+64. Implement confirmation dialogs: Standardize Confirm dialog with danger variant and undo options.
+65. Refactor pagination backend integration: Ensure UI pagination maps to API params; show total counts/page sizes.
+66. Add loading states for API calls: Show skeletons/spinners per API call while pending.
+67. Refactor breadcrumbs & routing UX: Add Breadcrumb component and human-readable, consistent routes.
+68. Refactor settings/profile UI: Design profile/settings page with consistent forms and avatars.
+69. Refactor blacklisted customers page: Apply new Table/Card components to BlacklistedCustomers and detail pages.
+70. Refactor limits pages: Apply design-system components to Limit.jsx and LimitDetail.jsx with consistent forms/tables.
+71. Refactor report page: Improve Report.jsx with charts, filters, and export actions (PDF/Excel).
+72. Implement export UX: Standardize ExportToPdf/XLSX flows with progress indicators and confirmations.
+73. Refactor file uploads: Build FileUpload component with previews, validation, accessible controls.
+74. Ensure i18n readiness: Extract strings and prepare components for internationalization (optional).
+75. Refactor utility helpers: Audit lib/util.js and utils/* for UI helpers; move UI helpers into design-system utils.
+76. Optimize icons & SVGs: Optimize SVG files, inline critical icons, lazy-load large illustrations.
+77. Add visual regression testing: Integrate Percy/Chromatic to catch visual regressions (optional).
+78. Implement CI checks: Add GitHub Actions for lint, test, build, and accessibility checks.
+79. Performance profiling: Use Lighthouse to profile pages and apply improvements (images, caching, code-splitting).
+80. Cross-browser testing: Test on Chrome, Firefox, Edge, Safari and fix layout/CSS issues.
+81. Refactor toast placement: Ensure toasts render in a dedicated DOM node for z-index consistency.
+82. Refactor session & auth UX: Improve logout flow, session expiration toasts, and idle timeout modal.
+83. Improve security UI hints: Mask sensitive data, add copy-to-clipboard with confirmation.
+84. Update document title & breadcrumbs: Ensure document title updates per route and breadcrumbs reflect navigation.
+85. Refactor mobile menu UX: Improve mobile sidebar overlay, focus management, and close on navigation.
+86. Accessibility keyboard trap review: Ensure modals and custom components have no keyboard traps.
+87. Polish microcopy: Audit labels, CTA text, and error messages for clarity and consistency.
+88. Create visual style guide page: Add docs/STYLEGUIDE.md or Story demonstrating tokens and components.
+89. Refactor Search UX: Add debounce, clear button, accessible label, and keyboard shortcuts if needed.
+90. Refactor date pickers: Standardize styling/localization for RangePicker usage.
+91. Table column resizing (optional): Implement column resizing/reordering for large tables (optional).
+92. Refactor CSV/XLSX import: Add validation, mapping UI, and progress for spreadsheet imports (if applicable).
+93. Audit third-party UIs: Identify usage of antd/flowbite and decide to keep, theme, or remove.
+94. Create migration PR batches: Group refactors into small PRs per feature (tokens, Button, Input, Sidebar).
+95. Run visual QA pass: After core updates, run visual QA across main pages and devices.
+96. Finalize documentation: Update README with dev commands, component usage, and migration notes.
+97. Prepare release notes: Draft release notes summarizing UI changes and migration notes for developers.
+98. Developer onboarding guide: Create guide on using the design-system and adding tokens/components.
+99. Stakeholder review & iterate: Share updated UI with stakeholders, collect feedback, and iterate.
+100. Polish & stabilize: Fix remaining bugs, finalize tests, optimize bundle, and prepare for production deployment.
+
+Next: tell me which step you want me to start implementing (I recommend starting with step 1: Repository audit).

@@ -90,7 +90,7 @@ function PageLoading() {
 // Main component that uses useSearchParams
 function ContributionsPaymentsContent() {
   const { modal, openModal, closeModal } = useModal();
-  const { selectedOrganization, currentOrgId, currentRole } = useAuth();
+  const { selectedOrganization, activeOrgId, activeContext } = useAuth();
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -133,9 +133,9 @@ function ContributionsPaymentsContent() {
     error: adminError,
     refetch: refetchAdmin,
   } = useQuery({
-    queryKey: ["admin-balance", currentOrgId],
-    queryFn: () => getAdminBalanceFn(currentOrgId!),
-    enabled: currentRole === "org_admin" && !!currentOrgId,
+    queryKey: ["admin-balance", activeOrgId],
+    queryFn: () => getAdminBalanceFn(activeOrgId!),
+    enabled: activeContext === "org_admin" && !!activeOrgId,
     staleTime: 60_000,
     select: (raw) => raw?.organization ?? null,
   });
@@ -170,15 +170,15 @@ function ContributionsPaymentsContent() {
     refetch,
   } = useQuery<TransactionHistoryResponse, Error>({
     // include statusFilter in the key so React Query refetches when status changes
-    queryKey: ["transaction-history", currentOrgId, statusFilter, page, rowsPerPage],
+    queryKey: ["transaction-history", activeOrgId, statusFilter, page, rowsPerPage],
     queryFn: () =>
       getNewPendingPaymentFn({
-        orgId: currentOrgId || "",
+        orgId: activeOrgId || "",
         status: statusFilter === "all" ? "all" : statusFilter,
         page,
         limit: rowsPerPage,
       }),
-    enabled: !!currentOrgId,
+    enabled: !!activeOrgId,
   });
 
   const transactionRows: TransactionRow[] = (txResp?.transactions || []).map((tx: any, idx: number) => ({
@@ -491,7 +491,7 @@ function ContributionsPaymentsContent() {
               action: "approve" as const,
               transferReceipt: file,
             };
-            
+
             console.log("=== APPROVAL PAYLOAD ===");
             console.log("Transaction ID:", payload.id);
             console.log("Action:", payload.action);
@@ -507,7 +507,7 @@ function ContributionsPaymentsContent() {
             }
             console.log("Full Row Data:", row);
             console.log("========================");
-            
+
             mutation.mutate(payload);
           },
         });
@@ -576,7 +576,7 @@ function ContributionsPaymentsContent() {
         <div className="mx-6 mb-2 rounded border border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs px-3 py-2 flex items-center justify-between">
           <span className="truncate">Failed to load balances. {(adminError as any)?.message || ""}</span>
           <button
-            onClick={() => (currentRole === "member" ? refetchAdmin() : refetchAdmin())}
+            onClick={() => refetchAdmin()}
             className="ml-3 inline-flex items-center px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-medium"
           >
             Retry

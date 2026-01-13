@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bell, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { ThemeToggle } from "../theme-toggle";
+import { ContextSwitcher } from "../ContextSwitcher/ContextSwitcher";
 import { useAuth } from "@/context/AuthContext";
 import { useLoading } from "@/context/LoadingContext";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
@@ -59,6 +60,7 @@ export function Header() {
         {/* Right Section */}
         <div className="flex items-center space-x-1 sm:space-x-3">
           <ThemeToggle />
+          <ContextSwitcher />
           <Button
             variant="ghost"
             size="icon"

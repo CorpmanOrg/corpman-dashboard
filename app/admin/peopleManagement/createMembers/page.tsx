@@ -62,7 +62,7 @@ const initialFormValues = {
 
 export default function CreateMembersPage() {
   const [activeTab, setActiveTab] = useState("Single Creation");
-  const { currentOrgId } = useAuth();
+  const { activeOrgId } = useAuth();
 
   // Toast state
   const [toast, setToast] = useState<ToastState>({
@@ -107,13 +107,13 @@ export default function CreateMembersPage() {
     initialValues: initialFormValues,
     validationSchema: createMemberSchema,
     onSubmit: (values) => {
-      if (!currentOrgId) {
+      if (!activeOrgId) {
         showToast("error", "Organization ID not found. Please log in again.");
         return;
       }
 
       const payload: CreateMemberPayload = {
-        organizationId: currentOrgId,
+        organizationId: activeOrgId,
         ...values,
       };
 

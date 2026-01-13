@@ -10,8 +10,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page = searchParams.get("page") || "1";
   const limit = searchParams.get("limit") || "10";
-  const status = searchParams.get("status"); // ❌ REMOVED - not forwarding status
-  // const type = searchParams.get("type");
+  const type = searchParams.get("type");
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
 
@@ -20,11 +19,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 3. Build backend URL with all filter params (status excluded)
+    // 3. Build backend URL with query params for filtering
     const backendUrl = new URL(`${apiUrl}/payment/history`);
     backendUrl.searchParams.set("page", page);
     backendUrl.searchParams.set("limit", limit);
-    // if (status) backendUrl.searchParams.set("status", status); // ❌ REMOVED
     if (type) backendUrl.searchParams.set("type", type);
     if (startDate) backendUrl.searchParams.set("startDate", startDate);
     if (endDate) backendUrl.searchParams.set("endDate", endDate);

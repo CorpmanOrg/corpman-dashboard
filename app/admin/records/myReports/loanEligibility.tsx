@@ -30,12 +30,12 @@ const formatMoney = (n: number | undefined) =>
   });
 
 const LoanEligibility: React.FC = () => {
-  const { currentRole } = useAuth();
+  const { activeContext } = useAuth();
 
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery<EligibilityPayload>({
     queryKey: ["member-loan-eligibility"],
     queryFn: () => getMembersLoanEligibilityFn(),
-    enabled: currentRole === "member",
+    enabled: activeContext === "member",
     staleTime: 60_000,
     retry: 1,
   });

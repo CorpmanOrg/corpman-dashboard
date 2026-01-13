@@ -32,7 +32,7 @@ type MembersRow = MemberWithActions & { sn: number; ActionButton: string; id: st
 
 export default function MembersPage() {
   const { modal, openModal, closeModal } = useModal();
-  const { user, currentRole, currentOrgId } = useAuth();
+  const { user, activeContext, activeOrgId, currentOrgId } = useAuth();
   const queryClient = useQueryClient();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -128,15 +128,15 @@ export default function MembersPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["fetch-members-by-admin", currentOrgId, page, rowsPerPage, statusForApi],
+    queryKey: ["fetch-members-by-admin", activeOrgId, page, rowsPerPage, statusForApi],
     queryFn: () =>
       getAllMembersFn({
-        orgId: currentOrgId!,
+        orgId: activeOrgId!,
         page,
         limit: rowsPerPage,
         status: statusForApi,
       }),
-    enabled: !!currentOrgId,
+    enabled: !!activeOrgId,
   });
 
   const mutation = useMutation<ApproveRejectResponse, Error, ApproveRejectPayload>({
@@ -152,7 +152,7 @@ export default function MembersPage() {
       queryClient.invalidateQueries({ queryKey: ["fetch-members-by-admin"] });
       // Force refetch for current query
       queryClient.refetchQueries({
-        queryKey: ["fetch-members-by-admin", currentOrgId, page, rowsPerPage, statusForApi],
+        queryKey: ["fetch-members-by-admin", activeOrgId, page, rowsPerPage, statusForApi],
       });
     },
     onError: (error) => {
@@ -335,7 +335,7 @@ export default function MembersPage() {
     ActionButton: "ActionButton",
   }));
 
-  const totalCount = membersData?.total ?? membersRows.length;
+  const totalCount = membersData?.totalPages ?? membersRows.length;
 
   const last3Members = useMemo<Member[]>(() => {
     const list = membersData?.members || [];
@@ -492,7 +492,7 @@ export default function MembersPage() {
       <div className="px-6 py-6 space-y-8 animate-in fade-in duration-500">
         {/* Member Cards Loading Skeleton */}
         <p className="animate-pulse">Loading member details...</p>
-        {currentRole === "org_admin" && (
+        {activeContext === "org_admin" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div
@@ -672,7 +672,7 @@ export default function MembersPage() {
       {/* Main Content */}
       {!MemberLoading && (
         <div className="px-6 py-6 space-y-8">
-          {currentRole === "org_admin" && (
+          {activeContext === "org_admin" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {last3Members.map((member, idx) => (
                 <StatCardOpposite

@@ -90,7 +90,7 @@ export default function StatementPage() {
   const [filters, setFilters] = useState<StatementFilterProps["filters"]>({});
   const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionTypeFilter>("all");
 
-  const { currentOrgId } = useAuth();
+  const { activeOrgId } = useAuth();
 
   // Fetch transactions via React Query using page and rowsPerPage
   const {
@@ -101,16 +101,16 @@ export default function StatementPage() {
     error,
     refetch,
   } = useQuery<TransactionHistoryResponse, Error>({
-    queryKey: ["transaction-history", currentOrgId, page, rowsPerPage, transactionTypeFilter, "all"],
+    queryKey: ["transaction-history", activeOrgId, page, rowsPerPage, transactionTypeFilter, "all"],
     queryFn: () =>
       getTransactionHistoryFn({
-        orgId: currentOrgId || "",
+        orgId: activeOrgId || "",
         page,
         limit: rowsPerPage,
         type: transactionTypeFilter,
         status: "all",
       }),
-    enabled: !!currentOrgId,
+    enabled: !!activeOrgId,
   });
 
   const transactionRows: TransactionRow[] = (txResp?.transactions || []).map((tx: any, idx: number) => ({

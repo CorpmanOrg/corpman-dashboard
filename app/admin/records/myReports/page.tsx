@@ -12,9 +12,9 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function MyReports() {
   const [selectedType, setSelectedType] = useState<string>("");
-  const { currentRole } = useAuth();
+  const { activeContext } = useAuth();
 
-  const isAdmin = currentRole === "org_admin";
+  const isAdmin = activeContext === "org_admin";
 
   const allowedTypes = ["statement", "updateProfile", "disputeResolution", "checkBalance", "loanEligibility"] as const;
 

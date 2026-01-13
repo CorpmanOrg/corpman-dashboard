@@ -23,7 +23,7 @@ type MembersRow = MemberWithActions & { sn: number };
 
 export default function MembersPage() {
   const { modal, openModal, closeModal } = useModal();
-  const { user, currentRole, currentOrgId } = useAuth();
+  const { user, activeContext, activeOrgId } = useAuth();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const status: string = "";
@@ -264,7 +264,7 @@ export default function MembersPage() {
         </div>
       )}
 
-      {currentRole === "member" && (
+      {activeContext === "member" && (
         <>
           {/* Trigger Button aligned right */}
           <div className="mb-4 flex justify-end">

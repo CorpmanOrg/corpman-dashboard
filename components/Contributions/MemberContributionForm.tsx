@@ -29,8 +29,8 @@ const MemberContributionForm = ({
 
   const getTransactionType = (moduleType: string, activeTab: string) => {
     if (moduleType === "loan") {
-      if (activeTab === "Deposit") return "loan";
-      if (activeTab === "Withdrawal") return "loan_repayment";
+      if (activeTab === "Deposit") return "loan_repayment";
+      if (activeTab === "Withdrawal") return "loan";
     }
     return `${moduleType}_${activeTab.toLowerCase()}`;
   };
@@ -116,7 +116,12 @@ const MemberContributionForm = ({
             }`}
             onClick={() => handleTabChange(tab)}
           >
-            {tab}
+            {/* {tab} */}
+            {moduleType === "loan" && tab === "Deposit"
+              ? "Loan Repayment"
+              : moduleType === "loan" && tab === "Withdrawal"
+              ? "New Loan"
+              : tab}
           </button>
         ))}
       </div>
