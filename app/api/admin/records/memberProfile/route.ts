@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, getToken } from "@/utils/auth-helpers";
 import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
   const apiUrl = process.env.API_BASE_TEST_URL;
+
+  // ⏸️ TEMPORARILY DISABLED: Auth-helper validation (waiting for backend to add organizations to JWT)
+  // TODO: Re-enable when backend JWT includes organizations array
+  // const authError = await requireAuth();
+  // if (authError) {
+  //   return authError;
+  // }
+
+  // 🔒 BASIC AUTH CHECK: Just verify user is logged in
   const cookieStore = await cookies();
   const token = cookieStore.get("myUserToken")?.value;
-
   if (!token) {
-    return NextResponse.json({ error: "Authentication token missing" }, { status: 401 });
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
   try {
@@ -38,12 +47,14 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   const apiUrl = process.env.API_BASE_TEST_URL;
-  const cookieStore = await cookies();
-  const token = cookieStore.get("myUserToken")?.value;
 
-  if (!token) {
-    return NextResponse.json({ error: "Authentication token missing" }, { status: 401 });
+  // 🔒 SECURITY: Validate authentication
+  const authError = await requireAuth();
+  if (authError) {
+    return authError;
   }
+
+  const token = await getToken();
 
   try {
     // Parse request body

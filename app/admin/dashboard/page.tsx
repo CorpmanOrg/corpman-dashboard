@@ -24,6 +24,17 @@ export default function Dashboard() {
   const { setLoading } = useLoading();
   const [componentsLoading, setComponentsLoading] = useState(true);
 
+  // 🐛 DEBUG: Log context values
+  useEffect(() => {
+    console.log("📊 Dashboard Context:", {
+      activeContext,
+      activeOrgId,
+      currentOrgId,
+      shouldFetchAdmin: activeContext === "org_admin" && !!activeOrgId,
+      shouldFetchMember: activeContext === "member",
+    });
+  }, [activeContext, activeOrgId, currentOrgId]);
+
   // Simulate loading for charts and other components
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -124,7 +135,7 @@ export default function Dashboard() {
     console.debug("Balance snapshot", { role: activeContext, activeData, initialLoading, backgroundFetching });
   }
 
-  console.log("Dashboard Data: ", {activeOrgId, activeContext, currentOrgId})
+  console.log("Dashboard Data: ", { activeOrgId, activeContext, currentOrgId });
 
   return (
     <TooltipProvider>

@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireOrgAdmin, getToken } from "@/utils/auth-helpers";
 import { cookies } from "next/headers";
 
 export async function PATCH(req: NextRequest) {
   const apiUrl = process.env.API_BASE_TEST_URL;
 
   try {
-    // 1. Get token from cookies
-    const cookieStore = await cookies();
-    const token = cookieStore.get("myUserToken")?.value;
-
+    // 1. Read query params for orgId
     const { searchParams } = new URL(req.url);
     const orgId = searchParams.get("orgId") || "";
 
+    // ⏸️ TEMPORARILY DISABLED: Auth-helper validation (waiting for backend to add organizations to JWT)
+    // TODO: Re-enable when backend JWT includes organizations array
+    // const authError = await requireOrgAdmin(orgId);
+    // if (authError) {
+    //   return authError; // Return 401/403 if unauthorized
+    // }
+
+    // 🔒 BASIC AUTH CHECK: Just verify user is logged in
+    const cookieStore = await cookies();
+    const token = cookieStore.get("myUserToken")?.value;
     if (!token) {
-      return NextResponse.json({ error: "Authentication token missing" }, { status: 401 });
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     // 2. Parse the incoming request body
@@ -44,7 +52,7 @@ export async function PATCH(req: NextRequest) {
           error: data.message || "Backend returned error",
           details: data,
         },
-        { status: response.status }
+        { status: response.status },
       );
     }
 

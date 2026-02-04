@@ -16,7 +16,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard", "/auth"],
+  matcher: [
+    "/",
+    "/dashboard",
+    "/auth/:path*",
+    "/admin/:path*", // 🔒 Protect all admin routes
+  ],
 };
 
 // import { NextResponse, NextRequest } from "next/server";
@@ -24,8 +29,6 @@ export const config = {
 // export function middleware(request: NextRequest) {
 //   const token = request.cookies.get("myUserToken")?.value;
 //   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
-
-
 
 //     // BYPASS: Allow all requests through (no auth checks)
 //   return NextResponse.next();

@@ -125,6 +125,23 @@ export function Header() {
               </SelectContent>
             </Select>
           )}
+
+          {/* Fallback for users with no organizations - Show logout button */}
+          {!hasSingleOrg && !hasMultipleOrgs && (
+            <Select value="user-menu" onValueChange={(value) => value === "logout" && logUserOut()}>
+              <SelectTrigger className="w-[120px] sm:w-[200px] text-[#0e4430] dark:text-green-400 text-xs sm:text-sm">
+                <span className="truncate">{user?.user?.firstName || "User"}</span>
+              </SelectTrigger>
+              <SelectContent>
+                <div
+                  className="px-4 py-2 text-xs sm:text-sm text-red-600 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={logUserOut}
+                >
+                  Logout
+                </div>
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </header>
     </div>

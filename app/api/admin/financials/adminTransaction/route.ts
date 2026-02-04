@@ -1,15 +1,27 @@
 import { NextResponse } from "next/server";
+import { requireAuth, getToken, getUserAdminOrganizations } from "@/utils/auth-helpers";
 import { cookies } from "next/headers";
 
 const url = process.env.API_BASE_TEST_URL;
 
 export async function PATCH(req: Request) {
   try {
+    // ⏸️ TEMPORARILY DISABLED: Auth-helper validation (waiting for backend to add organizations to JWT)
+    // TODO: Re-enable when backend JWT includes organizations array
+    // const authError = await requireAuth();
+    // if (authError) {
+    //   return authError;
+    // }
+    // const adminOrgs = await getUserAdminOrganizations();
+    // if (adminOrgs.length === 0) {
+    //   return NextResponse.json({ error: "Forbidden: org_admin role required" }, { status: 403 });
+    // }
+
+    // 🔒 BASIC AUTH CHECK: Just verify user is logged in
     const cookieStore = await cookies();
     const token = cookieStore.get("myUserToken")?.value;
-
     if (!token) {
-      return NextResponse.json({ error: "Authentication token missing, logout and login back" }, { status: 401 });
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     const contentType = req.headers.get("content-type") || "";

@@ -47,14 +47,30 @@
 // }
 
 import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireOrgAdmin, getToken } from "@/utils/auth-helpers";
+import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
   const apiUrl = process.env.API_BASE_TEST_URL;
 
-  // 2. Read query params from incoming request
+  // 1. Read query params from incoming request
   const { searchParams } = new URL(req.url);
   const orgId = searchParams.get("orgId") || "";
 
+  // ⏸️ TEMPORARILY DISABLED: Auth-helper validation (waiting for backend to add organizations to JWT)
+  // TODO: Re-enable when backend JWT includes organizations array
+  // const authError = await requireOrgAdmin(orgId);
+  // if (authError) {
+  //   return authError; // Return 401/403 if unauthorized
+  // }
+
+  // 🔒 BASIC AUTH CHECK: Just verify user is logged in
+  const cookieStore = await cookies();
+  const token = cookieStore.get("myUserToken")?.value;
+  if (!token) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
   const fullUrl = `${apiUrl}/api/v1/organizations/${orgId}/`;
 
   try {
@@ -63,6 +79,7 @@ export async function GET(req: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 

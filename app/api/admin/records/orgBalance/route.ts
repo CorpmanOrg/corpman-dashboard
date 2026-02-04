@@ -1,23 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireOrgAdmin, getToken } from "@/utils/auth-helpers";
 import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
   const apiUrl = process.env.API_BASE_TEST_URL;
 
   try {
-    // 1. Get token from cookies
+    // 1. Read query params from incoming request
+    const { searchParams } = new URL(req.url);
+    const orgId = searchParams.get("orgId") || "";
+
+    // 🐛 DEBUG: Log incoming request
+    console.log("🔍 orgBalance API called:", {
+      orgId,
+      url: req.url,
+      hasOrgId: !!orgId,
+    });
+
+    // ⏸️ TEMPORARILY DISABLED: Auth-helper validation (waiting for backend to add organizations to JWT)
+    // TODO: Re-enable when backend JWT includes organizations array
+    // const authError = await requireOrgAdmin(orgId);
+    // if (authError) {
+    //   console.log("❌ Authorization failed for orgId:", orgId);
+    //   return authError; // Return 401/403 if unauthorized
+    // }
+    // console.log("✅ Authorization passed for orgId:", orgId);
+
+    // 🔒 BASIC AUTH CHECK: Just verify user is logged in (token exists)
     const cookieStore = await cookies();
     const token = cookieStore.get("myUserToken")?.value;
 
     if (!token) {
-      return NextResponse.json({ error: "Authentication token missing" }, { status: 401 });
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
-
-    // 2. Read query params from incoming request
-    const { searchParams } = new URL(req.url);
-    const orgId = searchParams.get("orgId") || "";
-    // const page = searchParams.get("page") || "1";
-    // const limit = searchParams.get("limit") || "10";
 
     // 3. Make backend call
     const response = await fetch(`${apiUrl}/api/v1/organizations/${orgId}/balance`, {
@@ -43,7 +58,7 @@ export async function GET(req: NextRequest) {
           error: data.message || "Backend returned error",
           details: data,
         },
-        { status: response.status }
+        { status: response.status },
       );
     }
 

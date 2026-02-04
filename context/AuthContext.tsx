@@ -70,13 +70,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserData | null>(null);
   const [userLoggedData, setUserLoggedData] = useState<LogData | null>(null);
   const [isLoggedOut, setIsLoggedOut] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true); // Start with true to check auth on mount
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
 
   // Active Context State (NEW)
   const [activeContext, setActiveContext] = useState<ActiveContext>(() => {
-    // Load from localStorage on mount
+    // 🔒 Don't load from localStorage if on auth page or no cookie
     if (typeof window !== "undefined") {
+      const isAuthPage = window.location.pathname.startsWith("/auth");
+      const isLoggingOut = sessionStorage.getItem("__logging_out") === "true";
+
+      if (isAuthPage || isLoggingOut) {
+        // Clear any stale localStorage data
+        localStorage.removeItem("activeContext");
+        localStorage.removeItem("activeOrgId");
+        return "member";
+      }
+
+      // Check if user has valid auth cookie before trusting localStorage
+      const cookies = document.cookie.split(";");
+      const hasAuthCookie = cookies.some((c) => c.trim().startsWith("myUserToken="));
+
+      if (!hasAuthCookie) {
+        // No auth cookie - clear stale localStorage
+        localStorage.removeItem("activeContext");
+        localStorage.removeItem("activeOrgId");
+        return "member";
+      }
+
       const stored = localStorage.getItem("activeContext");
       return (stored as ActiveContext) || "member";
     }
@@ -84,9 +105,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   const [activeOrgId, setActiveOrgId] = useState<string | null>(() => {
-    // Load from localStorage on mount
+    // 🔒 Don't load from localStorage if on auth page
     if (typeof window !== "undefined") {
-      return localStorage.getItem("activeOrgId");
+      const isAuthPage = window.location.pathname.startsWith("/auth");
+      const isLoggingOut = sessionStorage.getItem("__logging_out") === "true";
+
+      if (isAuthPage || isLoggingOut) {
+        return null;
+      }
+
+      // Check if user has valid auth cookie before trusting localStorage
+      const cookies = document.cookie.split(";");
+      const hasAuthCookie = cookies.some((c) => c.trim().startsWith("myUserToken="));
+
+      if (!hasAuthCookie) {
+        return null;
+      }
+
+      const stored = localStorage.getItem("activeOrgId");
+      return stored;
     }
     return null;
   });
@@ -103,6 +140,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!res.ok) {
         setUser(null);
         setUserLoggedData(null);
+        // 🔒 Clear context and localStorage on auth failure
+        setActiveContext("member");
+        setActiveOrgId(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("activeContext");
+          localStorage.removeItem("activeOrgId");
+        }
         return;
       }
 
@@ -124,6 +168,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       setUser(null);
       setUserLoggedData(null);
+      // 🔒 Clear context and localStorage on error
+      setActiveContext("member");
+      setActiveOrgId(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("activeContext");
+        localStorage.removeItem("activeOrgId");
+      }
     } finally {
       setLoading(false);
     }
@@ -151,49 +202,77 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const switchToMember = useCallback(() => {
     setActiveContext("member");
     setActiveOrgId(null);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("activeContext", "member");
-      localStorage.removeItem("activeOrgId");
+    // 🔒 Only write to localStorage if we have an authenticated user and not logging out
+    if (typeof window !== "undefined" && !isLoggedOut) {
+      const isLoggingOut = sessionStorage.getItem("__logging_out") === "true";
+      if (!isLoggingOut) {
+        localStorage.setItem("activeContext", "member");
+        localStorage.removeItem("activeOrgId");
+      }
     }
     // Always redirect to dashboard on context switch
     router.push("/admin/dashboard");
-  }, [router]);
+  }, [router, isLoggedOut]);
 
   // Switch to Organization Context
   const switchToOrg = useCallback(
     (orgId: string) => {
       setActiveContext("org_admin");
       setActiveOrgId(orgId);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("activeContext", "org_admin");
-        localStorage.setItem("activeOrgId", orgId);
+      // 🔒 Only write to localStorage if we have an authenticated user and not logging out
+      if (typeof window !== "undefined" && !isLoggedOut) {
+        const isLoggingOut = sessionStorage.getItem("__logging_out") === "true";
+        if (!isLoggingOut) {
+          localStorage.setItem("activeContext", "org_admin");
+          localStorage.setItem("activeOrgId", orgId);
+        }
       }
       // Always redirect to dashboard on context switch
       router.push("/admin/dashboard");
     },
-    [router]
+    [router, isLoggedOut],
   );
 
   // Set default context when user logs in (admins default to org_admin)
   useEffect(() => {
+    // 🔒 Don't set context if logging out or on auth page
+    if (isLoggedOut) return;
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/auth")) return;
+
     if (user && currentRole) {
-      // Only set default if not already in localStorage
       const storedContext = typeof window !== "undefined" ? localStorage.getItem("activeContext") : null;
 
+      // 🔒 SECURITY FIX: Validate stored context against user's actual role
+      const hasAdminAccess = currentRole.includes("org_admin");
+
       if (!storedContext) {
-        if (currentRole.includes("org_admin") && currentOrgId) {
+        // No stored context - set default based on role
+        if (hasAdminAccess && currentOrgId) {
           switchToOrg(currentOrgId);
         } else {
           switchToMember();
         }
       } else {
-        // Sync state with localStorage on mount
-        if (storedContext === "org_admin" && currentOrgId) {
-          setActiveContext("org_admin");
-          const storedOrgId = localStorage.getItem("activeOrgId");
-          if (storedOrgId) {
-            setActiveOrgId(storedOrgId);
+        // Stored context exists - validate it matches user's permissions
+        if (storedContext === "org_admin") {
+          // User wants org_admin context - check if they actually have the role
+          if (hasAdminAccess && currentOrgId) {
+            // Valid: User has org_admin role
+            setActiveContext("org_admin");
+            const storedOrgId = localStorage.getItem("activeOrgId");
+            if (storedOrgId) {
+              setActiveOrgId(storedOrgId);
+            }
+          } else {
+            // Invalid: User doesn't have org_admin role but context says they do
+            // This is the bug - reset to member
+            console.warn("⚠️ Clearing invalid org_admin context for non-admin user");
+            switchToMember();
           }
+        } else {
+          // Context is "member" - always valid
+          setActiveContext("member");
+          setActiveOrgId(null);
         }
       }
     }

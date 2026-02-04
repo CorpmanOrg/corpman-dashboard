@@ -71,6 +71,12 @@ const Signin = () => {
       try {
         setIsRedirecting(true);
         setLoading(true, "Preparing your dashboard...");
+
+        // 🔒 Clear logout flag on successful login
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("__logging_out");
+        }
+
         StorageUtil.setSessionItem("logData", data);
         showToast("success", "Login successful! Loading dashboard...");
 
