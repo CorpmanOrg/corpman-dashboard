@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/Header/Header";
 import { SideNav } from "@/layout/SideNav";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import MainStatisticsCard from "@/components/Statistics/MainStatisticsCard";
 import { LineCharts } from "@/components//Charts/LineCharts";
 import { PieCharts } from "@/components//Charts/PieCharts";
@@ -23,6 +24,15 @@ export default function Dashboard() {
   const { activeContext, activeOrgId, currentOrgId } = useAuth();
   const { setLoading } = useLoading();
   const [componentsLoading, setComponentsLoading] = useState(true);
+  const [statModalOpen, setStatModalOpen] = useState(false);
+  const [statModalTitle, setStatModalTitle] = useState("");
+  const [statModalBody, setStatModalBody] = useState<React.ReactNode>(null);
+
+  const openStatModal = (title: string, body: React.ReactNode) => {
+    setStatModalTitle(title);
+    setStatModalBody(body);
+    setStatModalOpen(true);
+  };
 
   // 🐛 DEBUG: Log context values
   useEffect(() => {
@@ -91,40 +101,95 @@ export default function Dashboard() {
       value: `₦${(activeData?.balances?.savings ?? 0).toLocaleString()}`,
       icon: <PiggyBank />,
       loading: initialLoading,
+      onViewDetails: () =>
+        openStatModal(
+          "Savings",
+          <div className="space-y-1 text-sm">
+            <p>Total savings: ₦{(activeData?.balances?.savings ?? 0).toLocaleString()}</p>
+            <p>Last updated: {new Date().toLocaleString()}</p>
+          </div>,
+        ),
     },
     {
       title: "Contributions",
       value: `₦${(activeData?.balances?.contribution ?? 0).toLocaleString()}`,
       icon: <GitBranchPlus />,
       loading: initialLoading,
+      onViewDetails: () =>
+        openStatModal(
+          "Contributions",
+          <div className="space-y-1 text-sm">
+            <p>Total contributions: ₦{(activeData?.balances?.contribution ?? 0).toLocaleString()}</p>
+          </div>,
+        ),
     },
     {
       title: "Loans",
       value: `₦${(activeData?.balances?.loans ?? 0).toLocaleString()}`,
       icon: <CreditCard />,
       loading: initialLoading,
+      onViewDetails: () =>
+        openStatModal(
+          "Loans",
+          <div className="space-y-1 text-sm">
+            <p>Outstanding loans: ₦{(activeData?.balances?.loans ?? 0).toLocaleString()}</p>
+          </div>,
+        ),
     },
   ];
 
   const adminStats = [
-    { title: "Members", value: activeData?.totalMembers ?? 0, icon: <Users />, loading: initialLoading },
+    {
+      title: "Members",
+      value: activeData?.totalMembers ?? 0,
+      icon: <Users />,
+      loading: initialLoading,
+      onViewDetails: () =>
+        openStatModal(
+          "Members",
+          <div className="space-y-1 text-sm">
+            <p>Total members: {activeData?.totalMembers ?? 0}</p>
+          </div>,
+        ),
+    },
     {
       title: "Savings",
       value: `₦${(activeData?.totalBalances?.totalSavings ?? 0).toLocaleString()}`,
       icon: <PiggyBank />,
       loading: initialLoading,
+      onViewDetails: () =>
+        openStatModal(
+          "Savings (Org)",
+          <div className="space-y-1 text-sm">
+            <p>Total savings: ₦{(activeData?.totalBalances?.totalSavings ?? 0).toLocaleString()}</p>
+          </div>,
+        ),
     },
     {
       title: "Contributions",
       value: `₦${(activeData?.totalBalances?.totalContributions ?? 0).toLocaleString()}`,
       icon: <GitBranchPlus />,
       loading: initialLoading,
+      onViewDetails: () =>
+        openStatModal(
+          "Contributions (Org)",
+          <div className="space-y-1 text-sm">
+            <p>Total contributions: ₦{(activeData?.totalBalances?.totalContributions ?? 0).toLocaleString()}</p>
+          </div>,
+        ),
     },
     {
       title: "Loans",
       value: `₦${(activeData?.totalBalances?.totalLoansIssued ?? 0).toLocaleString()}`,
       icon: <CreditCard />,
       loading: initialLoading,
+      onViewDetails: () =>
+        openStatModal(
+          "Loans (Org)",
+          <div className="space-y-1 text-sm">
+            <p>Total loans issued: ₦{(activeData?.totalBalances?.totalLoansIssued ?? 0).toLocaleString()}</p>
+          </div>,
+        ),
     },
   ];
 
@@ -296,6 +361,15 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      <Dialog open={statModalOpen} onOpenChange={setStatModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{statModalTitle}</DialogTitle>
+            <DialogDescription />
+          </DialogHeader>
+          {statModalBody}
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 }

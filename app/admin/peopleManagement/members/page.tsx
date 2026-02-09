@@ -17,6 +17,7 @@ import {
 } from "@/types/types";
 import { getAllMembersFn, approveOrRejectMembersFn, getSingleMemberFn } from "@/utils/ApiFactory/admin";
 import { StatCardOpposite } from "@/components/Statistics/StatCard";
+import { StatModalShell, useStatModal } from "@/components/ui/stat-modal";
 import ConfirmModal from "@/components/Modals/ConfirmModal";
 import DetailsModal from "@/components/Modals/DetailsModal";
 import Toastbar from "@/components/Toastbar";
@@ -45,6 +46,7 @@ export default function MembersPage() {
 
   // Filter state
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const statModal = useStatModal();
 
   // Convert filter for API (API expects empty string for "all")
   // Map "approved" filter to "active" status for API
@@ -270,7 +272,7 @@ export default function MembersPage() {
     if (isError && error) {
       showToast(
         "error",
-        (error as unknown as TError)?.message || (error as Error).message || "Failed to fetch members ❌"
+        (error as unknown as TError)?.message || (error as Error).message || "Failed to fetch members ❌",
       );
     }
   }, [isError, error]);
@@ -674,13 +676,46 @@ export default function MembersPage() {
         <div className="px-6 py-6 space-y-8">
           {activeContext === "org_admin" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {last3Members.map((member, idx) => (
+              {/* {last3Members.map((member, idx) => (
                 <StatCardOpposite
                   key={idx}
                   title={`${member.firstName} ${member.surname}` || "Yazid"}
                   value={member.status || "N/A"}
                   icon={member.image || <User className="h-5 w-5" />}
                   iconGradient={getStatusIconGradient(member.status || "inactive")}
+                />
+              ))} */}
+              {last3Members.map((member, idx) => (
+                <StatCardOpposite
+                  key={idx}
+                  title={`${member.firstName} ${member.surname}` || "Unknown"}
+                  value={member.status || "N/A"}
+                  icon={
+                    member.image ? (
+                      <img
+                        src={member.image}
+                        alt={`${member.firstName} ${member.surname}`}
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )
+                  }
+                  iconGradient={getStatusIconGradient(member.status || "inactive")}
+                  onViewDetails={() =>
+                    statModal.openWith({
+                      title: `${member.firstName} ${member.surname}`,
+                      content: (
+                        <div className="space-y-2 text-sm">
+                          <p>Status: {member.status || "N/A"}</p>
+                          <p>Email: {member.email || "N/A"}</p>
+                          <p>Joined: {member.createdAt ? new Date(member.createdAt).toLocaleString() : "N/A"}</p>
+                        </div>
+                      ),
+                    })
+                  }
+                  // If you prefer navigation instead of modal:
+                  // viewHref={`/admin/peopleManagement/members/${member.id}`}
                 />
               ))}
               {/* Activity Bar Chart Card */}
@@ -920,6 +955,14 @@ export default function MembersPage() {
           )}
         </div>
       )}
+      <StatModalShell
+        open={statModal.open}
+        onOpenChange={statModal.setOpen}
+        title={statModal.title}
+        description={statModal.description}
+      >
+        {statModal.content}
+      </StatModalShell>
     </div>
   );
 }

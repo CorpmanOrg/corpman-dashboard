@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Users, Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { UserPlus, Users, Upload, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
@@ -22,7 +22,16 @@ const createMemberSchema = Yup.object().shape({
   firstName: Yup.string().required("First name is required"),
   middleName: Yup.string().required("Middle name is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
-  password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  // password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  password: Yup.string()
+    .required("Password is required")
+    .min(8, "Password must be at least 8 characters")
+    .matches(/[A-Z]/, "At least one uppercase letter")
+    .matches(/[a-z]/, "At least one lowercase letter")
+    .matches(/\d/, "At least one number")
+    .matches(/[!@#$%^&*()[\]{};:'\",.<>/?\\|`~+=_-]/, "At least one special character")
+    .matches(/^\S+$/, "No spaces allowed"),
+
   address: Yup.string().required("Address is required"),
   dateOfBirth: Yup.string().required("Date of birth is required"),
   stateOfOrigin: Yup.string().required("State of origin is required"),
@@ -31,8 +40,16 @@ const createMemberSchema = Yup.object().shape({
   residentialAddress: Yup.string().required("Residential address is required"),
   mobileNumber: Yup.string().required("Mobile number is required"),
   employer: Yup.string().required("Employer is required"),
-  annualIncome: Yup.number().positive("Must be positive").required("Annual income is required"),
-  monthlyContribution: Yup.number().positive("Must be positive").required("Monthly contribution is required"),
+  annualIncome: Yup.number()
+    .transform((value, originalValue) => (originalValue === "" ? undefined : value))
+    .typeError("Annual income must be a number")
+    .positive("Must be positive")
+    .required("Annual income is required"),
+  monthlyContribution: Yup.number()
+    .transform((value, originalValue) => (originalValue === "" ? undefined : value))
+    .typeError("Monthly contribution must be a number")
+    .positive("Must be positive")
+    .required("Monthly contribution is required"),
   nextOfKin: Yup.string().required("Next of kin is required"),
   nextOfKinRelationship: Yup.string().required("Next of kin relationship is required"),
   nextOfKinAddress: Yup.string().required("Next of kin address is required"),
@@ -53,8 +70,8 @@ const initialFormValues = {
   residentialAddress: "",
   mobileNumber: "",
   employer: "",
-  annualIncome: 0,
-  monthlyContribution: 0,
+  annualIncome: "",
+  monthlyContribution: "",
   nextOfKin: "",
   nextOfKinRelationship: "",
   nextOfKinAddress: "",
@@ -62,6 +79,7 @@ const initialFormValues = {
 
 export default function CreateMembersPage() {
   const [activeTab, setActiveTab] = useState("Single Creation");
+  const [showPassword, setShowPassword] = useState(false);
   const { activeOrgId } = useAuth();
 
   // Toast state
@@ -284,15 +302,25 @@ export default function CreateMembersPage() {
                         onBlur={formik.handleBlur}
                         formik={formik}
                       />
-                      <Input
-                        name="password"
-                        type="password"
-                        placeholder="Password"
-                        value={formik.values.password}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        formik={formik}
-                      />
+                      <div className="relative">
+                        <Input
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Password"
+                          value={formik.values.password}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          formik={formik}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((p) => !p)}
+                          className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                       <Input
                         name="dateOfBirth"
                         type="date"

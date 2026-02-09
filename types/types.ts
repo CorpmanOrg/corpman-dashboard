@@ -482,8 +482,8 @@ export type CreateMemberPayload = {
   residentialAddress: string;
   mobileNumber: string;
   employer: string;
-  annualIncome: number;
-  monthlyContribution: number;
+  annualIncome: string;
+  monthlyContribution: string;
   nextOfKin: string;
   nextOfKinRelationship: string;
   nextOfKinAddress: string;
