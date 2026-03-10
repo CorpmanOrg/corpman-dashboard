@@ -7,15 +7,15 @@ import { Formik, Form } from "formik";
 import { LoginInitialValues } from "../../../components/assets/data";
 import { LoginSchema } from "@/utils/Yup/schema";
 import { loginFn } from "@/utils/ApiFactory/auth";
-import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import { StorageUtil } from "@/utils/StorageUtil";
-import Toastbar from "@/components/Toastbar";
 import { ToastSeverity, ToastState } from "@/types/types";
 import { createErrorHandler, shouldLogout } from "@/utils/handleAppErr";
 import { useLoading } from "@/context/LoadingContext";
+import Toastbar from "@/components/Toastbar";
+import Link from "next/link";
 
 interface BackProps {
   flipBack: (val: boolean) => void;
@@ -90,7 +90,10 @@ const Signin = () => {
         console.error("Post-login error:", error);
         setIsRedirecting(false);
         setLoading(false);
-        showToast("error", "Login successful, but there was an issue redirecting. Please refresh the page.");
+        showToast(
+          "error",
+          "Login successful, but there was an issue redirecting. Please refresh the page.",
+        );
       }
     },
     onError: (error: any) => {
@@ -117,10 +120,19 @@ const Signin = () => {
 
   return (
     <>
-      <Toastbar open={toast.open} message={toast.message} severity={toast.severity} onClose={handleCloseToast} />
+      <Toastbar
+        open={toast.open}
+        message={toast.message}
+        severity={toast.severity}
+        onClose={handleCloseToast}
+      />
       <div className="px-6">
-        <h1 className="text-lg text-center text-gray-800 mb-1 font-bold">Sign In</h1>
-        <p className="text-[#8D8D8D] text-sm text-center mb-10">Sign in with your correct credentials</p>
+        <h1 className="text-lg text-center text-gray-800 mb-1 font-bold">
+          Sign In
+        </h1>
+        <p className="text-[#8D8D8D] text-sm text-center mb-10">
+          Sign in with your correct credentials
+        </p>
 
         <Formik
           initialValues={LoginInitialValues}
@@ -130,7 +142,10 @@ const Signin = () => {
               loginUser(values);
             } catch (error) {
               console.error("Form submission error:", error);
-              showToast("error", "An unexpected error occurred. Please try again.");
+              showToast(
+                "error",
+                "An unexpected error occurred. Please try again.",
+              );
             } finally {
               setSubmitting(false);
             }
@@ -146,10 +161,16 @@ const Signin = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   placeholder="Email"
-                  className={formik.touched.email && formik.errors.email ? "border-red-500" : ""}
+                  className={
+                    formik.touched.email && formik.errors.email
+                      ? "border-red-500"
+                      : ""
+                  }
                 />
                 {formik.touched.email && formik.errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{formik.errors.email}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.email}
+                  </p>
                 )}
               </div>
 
@@ -161,12 +182,18 @@ const Signin = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   placeholder="Password"
-                  className={formik.touched.password && formik.errors.password ? "border-red-500" : ""}
+                  className={
+                    formik.touched.password && formik.errors.password
+                      ? "border-red-500"
+                      : ""
+                  }
                   appendIcon={
                     <button
                       type="button"
                       onClick={() => setShowPassword((s) => !s)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                       className="p-1 text-gray-500 hover:text-gray-700"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -174,8 +201,19 @@ const Signin = () => {
                   }
                 />
                 {formik.touched.password && formik.errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{formik.errors.password}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.password}
+                  </p>
                 )}
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium text-green-600 hover:text-green-700"
+                >
+                  Forgot Password?
+                </Link>
               </div>
 
               <div className="mt-[25px]">
@@ -183,7 +221,11 @@ const Signin = () => {
                   type="submit"
                   className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={
-                    !formik.values.email || !formik.values.password || isPending || !formik.isValid || isRedirecting
+                    !formik.values.email ||
+                    !formik.values.password ||
+                    isPending ||
+                    !formik.isValid ||
+                    isRedirecting
                   }
                 >
                   {isRedirecting ? (

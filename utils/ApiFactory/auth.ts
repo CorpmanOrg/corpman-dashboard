@@ -124,3 +124,121 @@ export const logoutFn = async () => {
   StorageUtil.clearSessionItem();
   window.location.assign("/auth");
 };
+
+export type VerifyOtpPayload = {
+  email: string;
+  otp: string;
+};
+
+export const verifyOtpFn = async (payload: VerifyOtpPayload) => {
+  const res = await fetch("/api/auth/verify-otp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || data?.error || "OTP verification failed");
+  }
+
+  return data;
+};
+
+export type ResendOtpPayload = {
+  email: string;
+};
+
+export const resendOtpFn = async (payload: ResendOtpPayload) => {
+  const res = await fetch("/api/auth/resend-otp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || data?.error || "Failed to resend OTP");
+  }
+
+  return data;
+};
+
+export type ForgotPasswordPayload = {
+  email: string;
+};
+
+export const forgotPasswordFn = async (payload: ForgotPasswordPayload) => {
+  const res = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || data?.error || "Failed to send reset OTP");
+  }
+
+  return data;
+};
+
+export type VerifyResetOtpPayload = {
+  email: string;
+  otp: string;
+};
+
+export const verifyResetOtpFn = async (payload: VerifyResetOtpPayload) => {
+  const res = await fetch("/api/auth/verify-reset-otp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || data?.error || "Failed to verify reset OTP");
+  }
+
+  return data;
+};
+
+export type ResetPasswordPayload = {
+  email: string;
+  otp: string;
+  newPassword: string;
+};
+
+export const resetPasswordFn = async (payload: ResetPasswordPayload) => {
+  const res = await fetch("/api/auth/reset-password", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || data?.error || "Failed to reset password");
+  }
+
+  return data;
+};
+
+
+
+
